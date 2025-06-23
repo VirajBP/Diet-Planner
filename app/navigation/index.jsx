@@ -1,23 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { useTheme as usePaperTheme } from 'react-native-paper';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from '../context/AuthContext';
-import { OnboardingProvider } from '../context/OnboardingContext';
-import { ThemeProvider } from '../context/ThemeContext';
 
 // Import screens
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MealScreen from '../screens/MealScreen';
 import MealSuggestionsScreen from '../screens/MealSuggestionsScreen';
+import NutritionSearchScreen from '../screens/NutritionSearchScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import PremiumScreen from '../screens/PremiumScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import RemindersScreen from '../screens/RemindersScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import WaterTrackerScreen from '../screens/WaterTrackerScreen';
 import WeightLogScreen from '../screens/WeightLogScreen';
@@ -28,7 +25,10 @@ const Stack = createNativeStackNavigator();
 
 function TabNavigator() {
   const paperTheme = usePaperTheme();
-
+  // Custom theme colors
+  const darkBackground = paperTheme.dark ? '#101624' : '#1A1A1A'; // deep blue-black
+  const activeColor = '#2196F3'; // app blue
+  const inactiveColor = paperTheme.dark ? '#8E8E93' : '#B0B0B0';
   return (
     <Tab.Navigator
       screenOptions={{
@@ -37,11 +37,12 @@ function TabNavigator() {
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
-          tabBarActiveTintColor: paperTheme.colors.primary,
-          tabBarInactiveTintColor: paperTheme.colors.onSurface,
-          backgroundColor: paperTheme.colors.surface,
-          borderTopColor: paperTheme.colors.outline,
+          backgroundColor: darkBackground,
+          borderTopColor: '#222B3A',
+          borderTopWidth: 1,
         },
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: inactiveColor,
       }}
     >
       <Tab.Screen
@@ -120,6 +121,8 @@ function MainStack() {
       <Stack.Screen name="Premium" component={PremiumScreen} />
       <Stack.Screen name="WeightLog" component={WeightLogScreen} />
       <Stack.Screen name="MealSuggestions" component={MealSuggestionsScreen} />
+      <Stack.Screen name="NutritionSearch" component={NutritionSearchScreen} />
+      <Stack.Screen name="Reminders" component={RemindersScreen} />
     </Stack.Navigator>
   );
 }
@@ -143,18 +146,4 @@ function RootNavigator() {
   );
 }
 
-export default function Navigation() {
-  return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <NavigationContainer>
-          <AuthProvider>
-            <OnboardingProvider>
-              <RootNavigator />
-            </OnboardingProvider>
-          </AuthProvider>
-        </NavigationContainer>
-      </ThemeProvider>
-    </SafeAreaProvider>
-  );
-} 
+export default RootNavigator; 

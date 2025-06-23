@@ -1,0 +1,250 @@
+[
+  {
+    "_id": "68557f3e48628210e35bdbd3",
+    "name": "Plain Rice",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 136
+      },
+      {
+        "unit": "plate",
+        "calories": 206
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "rice",
+      "water"
+    ]
+  },
+  {
+    "_id": "68557f3e991007ab1728f8d4",
+    "name": "Dal Tadka",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 180
+      },
+      {
+        "unit": "cup",
+        "calories": 120
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "toor dal",
+      "onion",
+      "tomato",
+      "garlic",
+      "oil",
+      "spices"
+    ]
+  },
+  {
+    "_id": "68557f3e9a07c53d7067b539",
+    "name": "Paneer Butter Masala",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 360
+      },
+      {
+        "unit": "cup",
+        "calories": 240
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "paneer",
+      "butter",
+      "cream",
+      "tomato",
+      "spices"
+    ]
+  },
+  {
+    "_id": "68557f3e4312db0136647d8b",
+    "name": "Aloo Paratha",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 240
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "potato",
+      "wheat flour",
+      "ghee",
+      "spices"
+    ]
+  },
+  {
+    "_id": "68557f3e11dc3391b0ed9730",
+    "name": "Vegetable Biryani",
+    "units": [
+      {
+        "unit": "plate",
+        "calories": 360
+      },
+      {
+        "unit": "bowl",
+        "calories": 270
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "basmati rice",
+      "vegetables",
+      "spices",
+      "ghee",
+      "saffron"
+    ]
+  },
+  {
+    "_id": "68557f3e148d97c182d19b73",
+    "name": "Chicken Tikka",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 90
+      },
+      {
+        "unit": "100g",
+        "calories": 165
+      }
+    ],
+    "tags": [
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "chicken",
+      "spices",
+      "yogurt"
+    ]
+  },
+  {
+    "_id": "68557f3e14800c8fdd41ee11",
+    "name": "Tofu Stir Fry",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 220
+      }
+    ],
+    "tags": [
+      "vegan",
+      "gluten-free",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "tofu",
+      "bell pepper",
+      "soy sauce",
+      "garlic"
+    ]
+  },
+  {
+    "_id": "68557f3e89d28ee160739aab",
+    "name": "Boiled Egg",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 78
+      }
+    ],
+    "tags": [
+      "gluten-free",
+      "kosher",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "egg"
+    ]
+  },
+  {
+    "_id": "68557f3ed9f293e9ee7facec",
+    "name": "Roti (Chapati)",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 85
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "nut-free",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "whole wheat flour",
+      "water",
+      "salt",
+      "oil"
+    ]
+  },
+  {
+    "_id": "68557f3eff8092b760a4ddc6",
+    "name": "Chole (Chickpea Curry)",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 280
+      }
+    ],
+    "tags": [
+      "vegan",
+      "vegetarian",
+      "gluten-free",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "chickpeas",
+      "onion",
+      "tomato",
+      "garlic",
+      "spices"
+    ]
+  }
+]

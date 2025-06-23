@@ -9,7 +9,7 @@ const mealSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ['breakfast', 'lunch', 'dinner', 'snack'],
-    required: true
+    default: 'other'
   },
   name: {
     type: String,
@@ -37,6 +37,10 @@ const mealSchema = new mongoose.Schema({
   fat: {
     type: Number,
     default: 0
+  },
+  predefinedMealId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PredefinedMeal'
   }
 }, {
   timestamps: true

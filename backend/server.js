@@ -22,6 +22,8 @@ app.use('/api/meals', require('./routes/meals'));
 app.use('/api/water-logs', require('./routes/waterLogs'));
 app.use('/api/weight-logs', require('./routes/weightLogs'));
 app.use('/api/grocery-lists', require('./routes/groceryLists'));
+app.use('/api/nutrition', require('./routes/nutrition'));
+app.use('/api/reminders', require('./routes/reminders'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

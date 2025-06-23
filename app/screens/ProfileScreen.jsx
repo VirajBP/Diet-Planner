@@ -1,9 +1,12 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '../components/ui/Picker';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+
+const { width } = Dimensions.get('window');
 
 const ProfileScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -158,6 +161,45 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
+  const renderQuickActions = () => (
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Actions</Text>
+      <View style={styles.actionGrid}>
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          onPress={() => navigation.navigate('NutritionSearch')}
+        >
+          <Ionicons name="search" size={24} color={theme.colors.primary} />
+          <Text style={[styles.actionText, { color: theme.colors.text }]}>Nutrition Search</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          onPress={() => navigation.navigate('Reminders')}
+        >
+          <Ionicons name="notifications" size={24} color={theme.colors.primary} />
+          <Text style={[styles.actionText, { color: theme.colors.text }]}>Reminders</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          onPress={() => navigation.navigate('WeightLog')}
+        >
+          <Ionicons name="scale" size={24} color={theme.colors.primary} />
+          <Text style={[styles.actionText, { color: theme.colors.text }]}>Log Weight</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          onPress={() => navigation.navigate('Settings')}
+        >
+          <Ionicons name="settings" size={24} color={theme.colors.primary} />
+          <Text style={[styles.actionText, { color: theme.colors.text }]}>Settings</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   const renderEditModal = () => (
     <Modal
       visible={editModalVisible}
@@ -201,8 +243,11 @@ const ProfileScreen = ({ navigation }) => {
             <Picker
               selectedValue={editingProfile?.gender}
               onValueChange={(value) => setEditingProfile({ ...editingProfile, gender: value })}
-              options={genders}
-              placeholder="Select gender"
+              items={genders}
+              style={[styles.picker, { 
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border
+              }]}
             />
 
             <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Height (cm)</Text>
@@ -215,11 +260,11 @@ const ProfileScreen = ({ navigation }) => {
               value={editingProfile?.height?.toString()}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, height: text })}
               keyboardType="numeric"
-              placeholder="Enter your height"
+              placeholder="Enter your height in cm"
               placeholderTextColor={theme.colors.text + '80'}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Weight (kg)</Text>
+            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Current Weight (kg)</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.colors.card,
@@ -229,7 +274,7 @@ const ProfileScreen = ({ navigation }) => {
               value={editingProfile?.weight?.toString()}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, weight: text })}
               keyboardType="numeric"
-              placeholder="Enter your weight"
+              placeholder="Enter your current weight in kg"
               placeholderTextColor={theme.colors.text + '80'}
             />
 
@@ -243,7 +288,7 @@ const ProfileScreen = ({ navigation }) => {
               value={editingProfile?.targetWeight?.toString()}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, targetWeight: text })}
               keyboardType="numeric"
-              placeholder="Enter your target weight"
+              placeholder="Enter your target weight in kg"
               placeholderTextColor={theme.colors.text + '80'}
             />
 
@@ -251,31 +296,37 @@ const ProfileScreen = ({ navigation }) => {
             <Picker
               selectedValue={editingProfile?.activityLevel}
               onValueChange={(value) => setEditingProfile({ ...editingProfile, activityLevel: value })}
-              options={activityLevels}
-              placeholder="Select activity level"
+              items={activityLevels}
+              style={[styles.picker, { 
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border
+              }]}
             />
 
             <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Goal</Text>
             <Picker
               selectedValue={editingProfile?.goal}
               onValueChange={(value) => setEditingProfile({ ...editingProfile, goal: value })}
-              options={goals}
-              placeholder="Select goal"
+              items={goals}
+              style={[styles.picker, { 
+                backgroundColor: theme.colors.card,
+                borderColor: theme.colors.border
+              }]}
             />
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton, { backgroundColor: theme.colors.border }]}
+                style={[styles.modalButton, styles.cancelButton, { borderColor: theme.colors.border }]}
                 onPress={() => setEditModalVisible(false)}
               >
                 <Text style={[styles.modalButtonText, { color: theme.colors.text }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
+                style={[styles.modalButton, styles.saveButton, { backgroundColor: theme.colors.primary }]}
                 onPress={handleSaveProfile}
                 disabled={loading}
               >
-                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>
+                <Text style={[styles.modalButtonText, { color: 'white' }]}>
                   {loading ? 'Saving...' : 'Save'}
                 </Text>
               </TouchableOpacity>
@@ -289,52 +340,51 @@ const ProfileScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView}>
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>Profile</Text>
-            <TouchableOpacity
-              style={[styles.editButton, { backgroundColor: theme.colors.primary }]}
-              onPress={handleEditPress}
-            >
-              <Text style={[styles.editButtonText, { color: theme.dark ? '#000000' : '#FFFFFF' }]}>
-                Edit
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {renderSection('Personal Information', [
-            { label: 'Name', value: formatValue(user?.profile?.name) },
-            { label: 'Email', value: formatValue(user?.email) },
-            { label: 'Age', value: formatValue(user?.profile?.age, ' years') },
-            { label: 'Gender', value: formatValue(user?.profile?.gender) },
-          ])}
-
-          {renderSection('Body Measurements', [
-            { label: 'Height', value: formatValue(user?.profile?.height, ' cm') },
-            { label: 'Weight', value: formatValue(user?.profile?.weight, ' kg') },
-          ])}
-
-          {renderSection('Fitness Goals', [
-            { label: 'Activity Level', value: formatActivityLevel(user?.profile?.activityLevel) },
-            { label: 'Goal', value: formatGoal(user?.profile?.goal) },
-          ])}
-
-          {renderSection('Statistics', [
-            { label: 'Total Calories Burned', value: formatValue(user?.profile?.stats?.totalCaloriesBurned, ' kcal') },
-            { label: 'Total Workouts', value: formatValue(user?.profile?.stats?.totalWorkouts) },
-            { label: 'Streak Days', value: formatValue(user?.profile?.stats?.streakDays, ' days') },
-          ])}
-
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.colors.text }]}>Profile</Text>
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: theme.colors.primary }]}
-            onPress={handleLogout}
+            style={[styles.editButton, { backgroundColor: theme.colors.primary }]}
+            onPress={handleEditPress}
           >
-            <Text style={[styles.buttonText, { color: theme.dark ? '#000000' : '#FFFFFF' }]}>
-              Logout
-            </Text>
+            <Ionicons name="pencil" size={16} color="white" />
+            <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
         </View>
+
+        {renderQuickActions()}
+
+        {renderSection('Personal Information', [
+          { label: 'Name', value: formatValue(user?.profile?.name) },
+          { label: 'Age', value: formatValue(user?.profile?.age, ' years') },
+          { label: 'Gender', value: formatValue(user?.profile?.gender?.charAt(0).toUpperCase() + user?.profile?.gender?.slice(1)) },
+        ])}
+
+        {renderSection('Physical Information', [
+          { label: 'Height', value: formatValue(user?.profile?.height, ' cm') },
+          { label: 'Current Weight', value: formatValue(user?.profile?.weight, ' kg') },
+          { label: 'Target Weight', value: formatValue(user?.profile?.targetWeight, ' kg') },
+        ])}
+
+        {renderSection('Fitness Information', [
+          { label: 'Activity Level', value: formatActivityLevel(user?.profile?.activityLevel) },
+          { label: 'Goal', value: formatGoal(user?.profile?.goal) },
+        ])}
+
+        {renderSection('Account Information', [
+          { label: 'Email', value: formatValue(user?.email) },
+          { label: 'Member Since', value: formatValue(new Date(user?.createdAt).toLocaleDateString()) },
+          { label: 'Premium Status', value: user?.isPremium ? 'Premium' : 'Free' },
+        ])}
+
+        <TouchableOpacity
+          style={[styles.logoutButton, { backgroundColor: '#FF5252' }]}
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out" size={20} color="white" />
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
       </ScrollView>
+
       {renderEditModal()}
     </SafeAreaView>
   );
@@ -347,66 +397,90 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  content: {
-    padding: 20,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    padding: 20,
+    paddingBottom: 10,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
   },
   editButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
   },
   editButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
-    marginBottom: 25,
+    padding: 20,
+    paddingTop: 10,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 15,
+    marginBottom: 16,
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  actionCard: {
+    width: (width - 52) / 2,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 8,
+    textAlign: 'center',
   },
   field: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#30303030',
+    borderBottomColor: '#E0E0E0',
   },
   label: {
     fontSize: 16,
-    flex: 1,
+    fontWeight: '500',
   },
   value: {
     fontSize: 16,
-    fontWeight: '500',
-    flex: 1,
-    textAlign: 'right',
+    opacity: 0.8,
   },
-  button: {
-    width: '100%',
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
+  logoutButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 20,
+    justifyContent: 'center',
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
   },
-  buttonText: {
+  logoutButtonText: {
+    color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   modalContainer: {
     flex: 1,
@@ -414,14 +488,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalScrollView: {
-    width: '100%',
+    width: '90%',
+    maxHeight: '80%',
   },
   modalContent: {
-    padding: 20,
     borderRadius: 20,
-    width: '90%',
-    alignSelf: 'center',
-    marginVertical: 40,
+    padding: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   modalTitle: {
     fontSize: 24,
@@ -431,36 +508,46 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 16,
-    marginBottom: 5,
-    marginTop: 10,
+    marginBottom: 8,
+    fontWeight: '500',
   },
   input: {
-    width: '100%',
     height: 50,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    marginBottom: 15,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    fontSize: 16,
+  },
+  picker: {
+    height: 50,
+    borderRadius: 8,
+    marginBottom: 16,
     borderWidth: 1,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 12,
     marginTop: 20,
   },
   modalButton: {
     flex: 1,
-    height: 50,
-    borderRadius: 25,
+    height: 48,
+    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 5,
+    borderWidth: 1,
   },
   cancelButton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: 'transparent',
+  },
+  saveButton: {
+    borderWidth: 0,
   },
   modalButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
 });
 

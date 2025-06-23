@@ -51,7 +51,15 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     try {
-      const { token, user: userData } = await mongodbService.login(email, password);
+      // Format email consistently
+      const formattedEmail = email.toLowerCase().trim();
+      
+      // Validate input
+      if (!formattedEmail || !password) {
+        throw new Error('Please provide both email and password');
+      }
+
+      const { token, user: userData } = await mongodbService.login(formattedEmail, password);
       await AsyncStorage.setItem('userToken', token);
       mongodbService.setToken(token);
       setUser(userData);
@@ -61,7 +69,7 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.removeItem('userToken');
       setUser(null);
       mongodbService.setToken(null);
-      throw new Error(error.message || 'Failed to sign in');
+      throw new Error(error.response?.data?.message || error.message || 'Failed to sign in');
     }
   };
 

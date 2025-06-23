@@ -1,0 +1,385 @@
+[
+  {
+    "_id": {
+      "$oid": "68557f3e48628210e35bdbd3"
+    },
+    "name": "Plain Rice",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 136,
+        "protein": 2.7,
+        "carbs": 28.2,
+        "fat": 0.3
+      },
+      {
+        "unit": "plate",
+        "calories": 206,
+        "protein": 4.1,
+        "carbs": 42.8,
+        "fat": 0.5
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "dairy-free",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "rice",
+      "water"
+    ],
+    "recipe": [
+      "Rinse 1 cup of rice thoroughly until water runs clear",
+      "Add rice and 2 cups of water to a pot",
+      "Bring to boil, then reduce heat and simmer for 18-20 minutes",
+      "Let it rest for 5 minutes, then fluff with a fork",
+      "Serve hot as a side dish"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3e991007ab1728f8d4"
+    },
+    "name": "Dal Tadka",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 180,
+        "protein": 8.5,
+        "carbs": 25.3,
+        "fat": 6.2
+      },
+      {
+        "unit": "cup",
+        "calories": 120,
+        "protein": 5.7,
+        "carbs": 16.9,
+        "fat": 4.1
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "toor dal",
+      "onion",
+      "tomato",
+      "garlic",
+      "oil",
+      "spices"
+    ],
+    "recipe": [
+      "Pressure cook 1 cup toor dal with 3 cups water for 3 whistles",
+      "Heat oil in a pan and add cumin seeds, garlic, and onions",
+      "Add tomatoes and spices, cook until soft",
+      "Add cooked dal and simmer for 10 minutes",
+      "Garnish with coriander and serve hot"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3e9a07c53d7067b539"
+    },
+    "name": "Paneer Butter Masala",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 360,
+        "protein": 12.8,
+        "carbs": 18.5,
+        "fat": 28.4
+      },
+      {
+        "unit": "cup",
+        "calories": 240,
+        "protein": 8.5,
+        "carbs": 12.3,
+        "fat": 18.9
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "paneer",
+      "butter",
+      "cream",
+      "tomato",
+      "spices"
+    ],
+    "recipe": [
+      "Blend tomatoes, onions, and spices to make a smooth paste",
+      "Heat butter in a pan and add the paste, cook for 10 minutes",
+      "Add cream and simmer for 5 minutes",
+      "Add paneer cubes and cook for 3-4 minutes",
+      "Garnish with cream and serve with naan or rice"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3e4312db0136647d8b"
+    },
+    "name": "Aloo Paratha",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 240,
+        "protein": 6.2,
+        "carbs": 38.5,
+        "fat": 8.7
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "potato",
+      "wheat flour",
+      "ghee",
+      "spices"
+    ],
+    "recipe": [
+      "Boil and mash 2 medium potatoes with spices",
+      "Make dough with 2 cups wheat flour and water",
+      "Stuff potato mixture in dough balls and roll into parathas",
+      "Cook on hot tawa with ghee until golden brown",
+      "Serve hot with yogurt or pickle"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3e11dc3391b0ed9730"
+    },
+    "name": "Vegetable Biryani",
+    "units": [
+      {
+        "unit": "plate",
+        "calories": 360,
+        "protein": 8.5,
+        "carbs": 58.2,
+        "fat": 12.4
+      },
+      {
+        "unit": "bowl",
+        "calories": 270,
+        "protein": 6.4,
+        "carbs": 43.7,
+        "fat": 9.3
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "basmati rice",
+      "vegetables",
+      "spices",
+      "ghee",
+      "saffron"
+    ],
+    "recipe": [
+      "Soak basmati rice for 30 minutes and cook until 70% done",
+      "Sauté mixed vegetables with biryani spices",
+      "Layer rice and vegetables in a heavy-bottomed pan",
+      "Add saffron milk and steam for 20 minutes",
+      "Garnish with fried onions and serve hot"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3e148d97c182d19b73"
+    },
+    "name": "Chicken Tikka",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 90,
+        "protein": 15.2,
+        "carbs": 2.1,
+        "fat": 3.8
+      },
+      {
+        "unit": "100g",
+        "calories": 165,
+        "protein": 28.5,
+        "carbs": 3.9,
+        "fat": 7.1
+      }
+    ],
+    "tags": [
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "chicken",
+      "spices",
+      "yogurt"
+    ],
+    "recipe": [
+      "Marinate chicken pieces in yogurt and tikka spices for 2 hours",
+      "Thread chicken onto skewers",
+      "Grill or bake at 200°C for 20-25 minutes",
+      "Baste with oil and spices halfway through cooking",
+      "Serve hot with mint chutney and onion salad"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3e14800c8fdd41ee11"
+    },
+    "name": "Tofu Stir Fry",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 220,
+        "protein": 18.5,
+        "carbs": 12.3,
+        "fat": 12.8
+      }
+    ],
+    "tags": [
+      "vegan",
+      "gluten-free",
+      "nut-free",
+      "halal",
+      "kosher",
+      "none"
+    ],
+    "ingredients": [
+      "tofu",
+      "bell pepper",
+      "soy sauce",
+      "garlic"
+    ],
+    "recipe": [
+      "Press tofu for 30 minutes to remove excess water",
+      "Cut tofu into cubes and stir-fry until golden",
+      "Add chopped bell peppers and garlic",
+      "Add soy sauce and stir-fry for 3-4 minutes",
+      "Garnish with green onions and serve hot"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3e89d28ee160739aab"
+    },
+    "name": "Boiled Egg",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 78,
+        "protein": 6.3,
+        "carbs": 0.6,
+        "fat": 5.3
+      }
+    ],
+    "tags": [
+      "gluten-free",
+      "kosher",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "egg"
+    ],
+    "recipe": [
+      "Place eggs in a pot and cover with cold water",
+      "Bring water to boil over medium heat",
+      "Once boiling, remove from heat and let stand for 10-12 minutes",
+      "Transfer eggs to ice water to stop cooking",
+      "Peel and serve with salt and pepper"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3ed9f293e9ee7facec"
+    },
+    "name": "Roti (Chapati)",
+    "units": [
+      {
+        "unit": "piece",
+        "calories": 85,
+        "protein": 2.8,
+        "carbs": 15.2,
+        "fat": 1.2
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "nut-free",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "whole wheat flour",
+      "water",
+      "salt",
+      "oil"
+    ],
+    "recipe": [
+      "Mix 2 cups whole wheat flour with salt and water to make dough",
+      "Knead dough for 10 minutes until smooth",
+      "Divide into small balls and roll into thin circles",
+      "Cook on hot tawa until bubbles appear",
+      "Flip and cook other side, then puff over flame"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "68557f3eff8092b760a4ddc6"
+    },
+    "name": "Chole (Chickpea Curry)",
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": 280,
+        "protein": 12.5,
+        "carbs": 42.8,
+        "fat": 8.9
+      }
+    ],
+    "tags": [
+      "vegan",
+      "vegetarian",
+      "gluten-free",
+      "halal",
+      "none"
+    ],
+    "ingredients": [
+      "chickpeas",
+      "onion",
+      "tomato",
+      "garlic",
+      "spices"
+    ],
+    "recipe": [
+      "Soak chickpeas overnight and pressure cook until soft",
+      "Sauté onions, garlic, and ginger until golden",
+      "Add tomatoes and spices, cook until oil separates",
+      "Add cooked chickpeas and simmer for 15 minutes",
+      "Garnish with coriander and serve with rice or bread"
+    ]
+  }
+]

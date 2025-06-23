@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -10,6 +11,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { LineChart } from 'react-native-chart-kit';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../components/ui/Card';
@@ -23,6 +25,7 @@ const GLASS_SIZE = 250; // 250ml per glass
 const WaterTrackerScreen = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [waterLogs, setWaterLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [glassSize, setGlassSize] = useState(user?.isPremium ? 250 : 250); // Default 250ml for all users
@@ -30,6 +33,7 @@ const WaterTrackerScreen = () => {
   const [showGlassSizeModal, setShowGlassSizeModal] = useState(false);
   const [todayTotal, setTodayTotal] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(WATER_GOAL);
+  const [monthlyLogs, setMonthlyLogs] = useState([]);
 
   useEffect(() => {
     loadWaterLogs();
@@ -44,6 +48,17 @@ const WaterTrackerScreen = () => {
       setWaterLogs(todayLogs);
       const total = todayLogs.reduce((sum, log) => sum + log.amount, 0);
       setTodayTotal(total);
+      // Monthly logs for premium users
+      if (user?.isPremium) {
+        const now = new Date();
+        const month = now.getMonth();
+        const year = now.getFullYear();
+        const monthLogs = logs.filter(log => {
+          const d = new Date(log.createdAt);
+          return d.getMonth() === month && d.getFullYear() === year;
+        });
+        setMonthlyLogs(monthLogs);
+      }
     } catch (error) {
       if (error.message.includes('premium')) {
         // Handle premium feature error gracefully
@@ -59,8 +74,16 @@ const WaterTrackerScreen = () => {
 
   const addWaterLog = async () => {
     try {
-      const newLog = await mongodbService.addWaterLog({ amount: glassSize });
-      setWaterLogs([...waterLogs, newLog]);
+      let amount = glassSize;
+      if (!user?.isPremium) {
+        amount = 250; // Always use 250ml for free users
+        setGlassSize(250);
+      }
+      const newLog = await mongodbService.addWaterLog({ amount });
+      const updatedLogs = [...waterLogs, newLog];
+      setWaterLogs(updatedLogs);
+      const total = updatedLogs.reduce((sum, log) => sum + log.amount, 0);
+      setTodayTotal(total);
     } catch (error) {
       if (error.message.includes('premium')) {
         Alert.alert(
@@ -136,7 +159,7 @@ const WaterTrackerScreen = () => {
 
         <View style={styles.projectionCard}>
           <Text style={[styles.projectionTitle, { color: theme.colors.text }]}>
-            Monthly Projection
+            Today's Water Intake
           </Text>
           {/* Add your monthly projection chart/graph here */}
         </View>
@@ -144,8 +167,27 @@ const WaterTrackerScreen = () => {
     );
   };
 
+  // Calculate progress for the progress circle
+  const progress = Math.min(todayTotal / dailyGoal, 1);
+
+  // Helper to get chart data for monthly logs
+  function getMonthlyChartData() {
+    // Group by day
+    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const dailyTotals = Array(daysInMonth).fill(0);
+    monthlyLogs.forEach(log => {
+      const d = new Date(log.createdAt);
+      const day = d.getDate() - 1;
+      dailyTotals[day] += log.amount;
+    });
+    return {
+      labels: Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString()),
+      datasets: [{ data: dailyTotals }],
+    };
+  }
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.colors.text }]}>Water Tracker</Text>
       </View>
@@ -167,7 +209,7 @@ const WaterTrackerScreen = () => {
 
         <View style={styles.progressContainer}>
           <CircularProgress
-            value={(todayTotal / dailyGoal) * 100}
+            value={Math.min((todayTotal / dailyGoal) * 100, 100)}
             radius={80}
             duration={1000}
             progressValueColor={theme.colors.text}
@@ -179,6 +221,28 @@ const WaterTrackerScreen = () => {
             inActiveStrokeColor={theme.colors.border}
           />
         </View>
+
+        {user?.isPremium && monthlyLogs.length > 0 && (
+          <Card style={styles.logsCard}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Monthly Water Intake</Text>
+            <LineChart
+              data={getMonthlyChartData()}
+              width={320}
+              height={180}
+              chartConfig={{
+                backgroundColor: theme.colors.card,
+                backgroundGradientFrom: theme.colors.card,
+                backgroundGradientTo: theme.colors.card,
+                decimalPlaces: 0,
+                color: (opacity = 1) => theme.colors.primary + Math.round(opacity * 255).toString(16),
+                labelColor: () => theme.colors.text,
+                style: { borderRadius: 16 },
+              }}
+              bezier
+              style={{ marginVertical: 8, borderRadius: 16 }}
+            />
+          </Card>
+        )}
 
         <Card style={styles.logsCard}>
           <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
@@ -194,14 +258,6 @@ const WaterTrackerScreen = () => {
         </Card>
       </ScrollView>
 
-      <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
-        onPress={addWaterLog}
-      >
-        <Ionicons name="add" size={24} color="white" />
-        <Text style={styles.addButtonText}>Add Water ({glassSize}ml)</Text>
-      </TouchableOpacity>
-
       <Modal
         visible={showGlassSizeModal}
         transparent={true}
@@ -209,15 +265,21 @@ const WaterTrackerScreen = () => {
         onRequestClose={() => setShowGlassSizeModal(false)}
       >
         <View style={[styles.modalContainer, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
+          <View style={[styles.modalContent, { 
+            backgroundColor: theme.dark ? '#1A1A1A' : theme.colors.surface,
+            borderColor: theme.colors.border,
+            borderWidth: 1,
+          }]}>
             <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
               Customize Glass Size
             </Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: theme.colors.background,
+                backgroundColor: theme.dark ? '#2C2C2E' : theme.colors.background,
                 color: theme.colors.text,
-                borderColor: theme.colors.border
+                borderColor: theme.colors.border,
+                borderRadius: 8,
+                marginBottom: 20,
               }]}
               value={customGlassSize.toString()}
               onChangeText={(text) => setCustomGlassSize(parseInt(text) || 0)}
@@ -227,24 +289,40 @@ const WaterTrackerScreen = () => {
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: theme.colors.error }]}
+                style={[styles.modalButton, { 
+                  backgroundColor: theme.dark ? '#2C2C2E' : theme.colors.surface,
+                  borderColor: theme.colors.border,
+                  borderWidth: 1,
+                  marginRight: 8,
+                }]}
                 onPress={() => setShowGlassSizeModal(false)}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Text style={[styles.modalButtonText, { color: theme.colors.text }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
+                style={[styles.modalButton, { 
+                  backgroundColor: theme.colors.primary,
+                  marginLeft: 8,
+                }]}
                 onPress={() => {
                   setGlassSize(customGlassSize);
                   setShowGlassSizeModal(false);
                 }}
               >
-                <Text style={styles.modalButtonText}>Save</Text>
+                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+
+      <TouchableOpacity
+        style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
+        onPress={addWaterLog}
+      >
+        <Ionicons name="add" size={24} color="white" />
+        <Text style={styles.addButtonText}>Add Water ({glassSize}ml)</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -384,38 +462,41 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
-    padding: 24,
-    borderRadius: 8,
-    width: '80%',
+    width: '100%',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 20,
+    textAlign: 'center',
   },
   input: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'gray',
-    marginBottom: 16,
+    width: '100%',
+    height: 50,
+    paddingHorizontal: 15,
+    fontSize: 16,
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    width: '100%',
   },
   modalButton: {
-    padding: 12,
-    borderRadius: 8,
     flex: 1,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalButtonText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
   },
 });
 

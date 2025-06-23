@@ -11,10 +11,12 @@ const { validateRegistration } = require('../middleware/validation');
 router.post('/register', validateRegistration, async (req, res) => {
   try {
     const { email, password, profile } = req.body;
+    console.log('Registration attempt for email:', email);
 
     // Check if user already exists
     let user = await User.findOne({ email: email.toLowerCase() });
     if (user) {
+      console.log('User already exists:', email);
       return res.status(400).json({ message: 'User already exists' });
     }
 
@@ -43,16 +45,13 @@ router.post('/register', validateRegistration, async (req, res) => {
       }
     });
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    // Save user
+    // Save user (password will be hashed by pre-save hook)
     await user.save();
+    console.log('User registered successfully:', user._id);
 
     // Create and return JWT token with consistent format
     const token = jwt.sign(
-      { userId: user._id },
+      { id: user._id },
       config.jwtSecret,
       { expiresIn: config.jwtExpiresIn }
     );
@@ -62,12 +61,17 @@ router.post('/register', validateRegistration, async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        isPremium: user.isPremium,
         profile: user.profile
       }
     });
   } catch (error) {
     console.error('Registration error:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        details: Object.values(error.errors).map(err => err.message)
+      });
+    }
     res.status(500).json({ message: 'Server error during registration' });
   }
 });
@@ -75,45 +79,55 @@ router.post('/register', validateRegistration, async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    console.log('Login request body:', req.body);
-    console.log('Login request headers:', req.headers);
-    
     const { email, password } = req.body;
+    console.log('Login attempt for email:', email);
 
-    console.log('Extracted email:', email);
-    console.log('Extracted password:', !!password);
-
+    // Validate input
     if (!email || !password) {
-      console.log('Validation failed - email:', email, 'password:', !!password);
+      console.log('Missing email or password');
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
+    // Format email consistently
+    const formattedEmail = email.toLowerCase().trim();
+    console.log('Formatted email:', formattedEmail);
+    
     // Check if user exists
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: formattedEmail });
+    console.log('User found:', user ? 'Yes' : 'No');
+    
     if (!user) {
+      console.log('User not found for email:', formattedEmail);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
-    const isMatch = await user.comparePassword(password);
+    // Check password using bcrypt
+    console.log('Comparing passwords...');
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match:', isMatch);
+    
     if (!isMatch) {
+      console.log('Invalid credentials - passwords did not match');
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // Create token
+    // Create token with consistent format
     const token = jwt.sign(
-      { userId: user._id },
+      { id: user._id },
       config.jwtSecret,
       { expiresIn: config.jwtExpiresIn }
     );
 
+    console.log('Login successful for user:', user._id);
+
+    // Return user data without sensitive information
     res.json({
       token,
       user: {
         id: user._id,
         email: user.email,
-        isPremium: user.isPremium,
-        profile: user.profile
+        profile: user.profile,
+        isPremium: user.isPremium
       }
     });
   } catch (error) {

@@ -86,7 +86,7 @@ class MongoDBService {
     this.api.interceptors.request.use(
       async (config) => {
         try {
-          const token = await AsyncStorage.getItem('token');
+          const token = await AsyncStorage.getItem('userToken');
           if (token) {
             config.headers.Authorization = `Bearer ${token}`;
           }
@@ -136,19 +136,32 @@ class MongoDBService {
   // Auth Operations
   async login(email, password) {
     try {
-      const response = await this.api.post('/auth/login', { 
-        email: email.toLowerCase().trim(),
-        password 
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+      // Always lowercase and trim email before sending
+      const formattedEmail = email.toLowerCase().trim();
+      const response = await this.api.post('/auth/login', {
+        email: formattedEmail,
+        password: password.trim()
       });
-      this.setToken(response.data.token);
+      if (response.data.token) {
+        this.setToken(response.data.token);
+      }
       return response.data;
     } catch (error) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
       throw error;
     }
   }
 
   async register(userData) {
     try {
+      // Always lowercase and trim email before sending
+      userData.email = userData.email.toLowerCase().trim();
+      userData.password = userData.password.trim();
       const response = await this.api.post('/auth/register', userData);
       this.setToken(response.data.token);
       return response.data;
@@ -207,9 +220,17 @@ class MongoDBService {
   // Meal Operations
   async getMeals() {
     try {
-      const response = await this.api.get('/meals');
+      // Get date 7 days ago
+      const today = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(today.getDate() - 6);
+      const from = sevenDaysAgo.toISOString().split('T')[0];
+      const to = today.toISOString().split('T')[0];
+      const response = await this.api.get(`/meals?from=${from}&to=${to}`);
+      // The backend returns grouped meals by date
       return response.data;
     } catch (error) {
+      console.error('Error fetching meals:', error);
       throw error;
     }
   }
@@ -306,6 +327,89 @@ class MongoDBService {
   async deleteWeightLog(logId) {
     try {
       const response = await this.api.delete(`/weight-logs/${logId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Nutrition Search Operations
+  async searchNutrition(query) {
+    try {
+      const response = await this.api.get(`/nutrition/search?query=${encodeURIComponent(query)}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getMealInfo(mealId) {
+    try {
+      const response = await this.api.get(`/nutrition/meal/${mealId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllMeals() {
+    try {
+      const response = await this.api.get('/nutrition/all');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getSearchSuggestions(query) {
+    try {
+      const response = await this.api.get(`/nutrition/suggestions?query=${encodeURIComponent(query)}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Reminders Operations
+  async getReminders() {
+    try {
+      const response = await this.api.get('/reminders');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async createReminder(reminderData) {
+    try {
+      const response = await this.api.post('/reminders', reminderData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateReminder(reminderId, reminderData) {
+    try {
+      const response = await this.api.put(`/reminders/${reminderId}`, reminderData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteReminder(reminderId) {
+    try {
+      const response = await this.api.delete(`/reminders/${reminderId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async toggleReminder(reminderId) {
+    try {
+      const response = await this.api.patch(`/reminders/${reminderId}/toggle`);
       return response.data;
     } catch (error) {
       throw error;

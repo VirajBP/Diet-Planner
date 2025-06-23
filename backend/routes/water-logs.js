@@ -20,7 +20,7 @@ const checkPremium = async (req, res, next) => {
       const { amount } = req.body;
       
       // Non-premium users can only add 250ml logs
-      if (!user.isPremium && amount !== 250) {
+      if (!user.isPremium && parseInt(amount) !== 250) {
         return res.status(403).json({ 
           message: 'Non-premium users can only add 250ml water logs. Upgrade to premium for custom amounts.',
           isPremium: false,

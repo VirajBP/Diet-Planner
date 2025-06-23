@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Meal = require('../models/Meal');
 const User = require('../models/User');
+const PredefinedMeal = require('../models/PredefinedMeal');
 
 // Get meals for the last 7 days
 router.get('/', auth, async (req, res) => {
@@ -125,52 +126,124 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// Get meal suggestions
+// GET /meals/suggestions?tags=vegetarian
 router.get('/suggestions', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const dietaryRestrictions = user.profile?.dietaryRestrictions || [];
-    
-    // Basic meal suggestions by type
-    const suggestions = {
-      breakfast: [
-        { name: 'Oatmeal with Fruits', calories: 250, ingredients: ['oats', 'banana', 'honey'] },
-        { name: 'Greek Yogurt Parfait', calories: 300, ingredients: ['yogurt', 'granola', 'berries'] },
-        { name: 'Whole Grain Toast with Avocado', calories: 280, ingredients: ['bread', 'avocado', 'eggs'] }
-      ],
-      lunch: [
-        { name: 'Grilled Chicken Salad', calories: 350, ingredients: ['chicken', 'lettuce', 'tomatoes'] },
-        { name: 'Quinoa Bowl', calories: 400, ingredients: ['quinoa', 'vegetables', 'chickpeas'] },
-        { name: 'Turkey Wrap', calories: 320, ingredients: ['turkey', 'tortilla', 'vegetables'] }
-      ],
-      dinner: [
-        { name: 'Baked Salmon', calories: 450, ingredients: ['salmon', 'rice', 'vegetables'] },
-        { name: 'Vegetable Stir-Fry', calories: 300, ingredients: ['tofu', 'mixed vegetables', 'rice'] },
-        { name: 'Lean Beef with Sweet Potato', calories: 500, ingredients: ['beef', 'sweet potato', 'broccoli'] }
-      ],
-      snack: [
-        { name: 'Mixed Nuts', calories: 160, ingredients: ['almonds', 'walnuts', 'cashews'] },
-        { name: 'Apple with Peanut Butter', calories: 200, ingredients: ['apple', 'peanut butter'] },
-        { name: 'Hummus with Carrots', calories: 150, ingredients: ['hummus', 'carrots'] }
-      ]
-    };
-
-    // Filter suggestions based on dietary restrictions
-    if (dietaryRestrictions.length > 0) {
-      Object.keys(suggestions).forEach(mealType => {
-        suggestions[mealType] = suggestions[mealType].filter(meal => {
-          return !meal.ingredients.some(ingredient => 
-            dietaryRestrictions.some(restriction => 
-              ingredient.toLowerCase().includes(restriction.toLowerCase())
-            )
-          );
-        });
-      });
+    const tags = req.query.tags ? req.query.tags.split(',') : [];
+    let query = {};
+    if (tags.length > 0) {
+      query.tags = { $all: tags };
     }
-
-    res.json(suggestions);
+    let meals = await PredefinedMeal.find(query);
+    // Exclude meals with ["fat", "spicy", "oily"] if overweight
+    if (user.profile && user.profile.weight - user.profile.targetWeight > 5) {
+      meals = meals.filter(meal => !meal.tags.some(tag => ["fat", "spicy", "oily"].includes(tag)));
+    }
+    // Structured format
+    const suggestions = meals.map(meal => {
+      const unit = meal.units[0];
+      return {
+        id: meal._id,
+        name: meal.name,
+        tags: meal.tags,
+        ingredients: meal.ingredients,
+        units: Array.isArray(meal.units) ? meal.units : [],
+        imageUrl: meal.imageUrl
+      };
+    });
+    res.json(Array.isArray(suggestions) ? suggestions : []);
   } catch (error) {
     console.error('Get meal suggestions error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /meals/premium?ingredients=rice,tomato,onion
+router.get('/premium', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user.isPremium) {
+      return res.status(403).json({ message: 'Premium feature only' });
+    }
+    const ingredients = req.query.ingredients ? req.query.ingredients.split(',') : [];
+    if (ingredients.length === 0) {
+      return res.status(400).json({ message: 'No ingredients provided' });
+    }
+    // Find meals where all ingredients are in the provided list
+    const meals = await PredefinedMeal.find({
+      ingredients: { $not: { $elemMatch: { $nin: ingredients } } }
+    });
+    const suggestions = meals.map(meal => {
+      const unit = meal.units[0];
+      return {
+        id: meal._id,
+        name: meal.name,
+        unit: unit.unit,
+        calories: unit.calories,
+        tags: meal.tags,
+        imageUrl: meal.imageUrl
+      };
+    });
+    res.json(suggestions);
+  } catch (error) {
+    console.error('Get premium meal suggestions error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// POST /meals/log
+router.post('/log', auth, async (req, res) => {
+  try {
+    const { name, unit, quantity } = req.body;
+    if (!name || !unit || !quantity) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    // Find the meal and unit
+    const meal = await PredefinedMeal.findOne({ name });
+    if (!meal) {
+      return res.status(404).json({ message: 'Meal not found' });
+    }
+    const unitObj = meal.units.find(u => u.unit === unit);
+    if (!unitObj) {
+      return res.status(400).json({ message: 'Unit not found for this meal' });
+    }
+    const calories = quantity * unitObj.calories;
+    // Log the meal for the user
+    const newMeal = new Meal({
+      userId: req.user.id,
+      name,
+      type: 'other',
+      calories,
+      ingredients: meal.ingredients,
+      date: new Date(),
+      predefinedMealId: meal._id
+    });
+    await newMeal.save();
+    res.status(201).json({ message: 'Meal logged', meal: newMeal });
+  } catch (error) {
+    console.error('Log meal error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /meals/predefined/:id
+router.get('/predefined/:id', auth, async (req, res) => {
+  try {
+    const meal = await PredefinedMeal.findById(req.params.id);
+    if (!meal) {
+      return res.status(404).json({ message: 'Predefined meal not found' });
+    }
+    res.json({
+      id: meal._id,
+      name: meal.name,
+      units: meal.units,
+      tags: meal.tags,
+      ingredients: meal.ingredients,
+      imageUrl: meal.imageUrl
+    });
+  } catch (error) {
+    console.error('Get predefined meal error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

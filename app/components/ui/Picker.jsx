@@ -9,6 +9,7 @@ export const Picker = ({
   onValueChange,
   items,
   options,
+  multiple = false,
   placeholder = 'Select an option',
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -18,8 +19,50 @@ export const Picker = ({
   const pickerOptions = options || items || [];
   
   // Find the selected option's label
-  const selectedOption = pickerOptions.find(opt => opt.value === selectedValue);
-  const displayText = selectedOption ? selectedOption.label : placeholder;
+  const getDisplayText = () => {
+    if (multiple) {
+      if (!Array.isArray(selectedValue) || selectedValue.length === 0) {
+        return placeholder;
+      }
+      const selectedLabels = selectedValue.map(value => 
+        pickerOptions.find(opt => opt.value === value)?.label
+      ).filter(Boolean);
+      return selectedLabels.length > 0 ? selectedLabels.join(', ') : placeholder;
+    } else {
+      const selectedOption = pickerOptions.find(opt => opt.value === selectedValue);
+      return selectedOption ? selectedOption.label : placeholder;
+    }
+  };
+
+  const handleSelect = (value) => {
+    if (multiple) {
+      let newValue;
+      if (Array.isArray(selectedValue)) {
+        if (value === 'none') {
+          newValue = ['none'];
+        } else {
+          if (selectedValue.includes(value)) {
+            newValue = selectedValue.filter(v => v !== value);
+          } else {
+            newValue = selectedValue.filter(v => v !== 'none').concat(value);
+          }
+        }
+      } else {
+        newValue = [value];
+      }
+      onValueChange(newValue);
+    } else {
+      onValueChange(value);
+      setModalVisible(false);
+    }
+  };
+
+  const isSelected = (value) => {
+    if (multiple) {
+      return Array.isArray(selectedValue) && selectedValue.includes(value);
+    }
+    return selectedValue === value;
+  };
 
   return (
     <View style={styles.container}>
@@ -36,7 +79,7 @@ export const Picker = ({
           !selectedValue && styles.placeholder,
           { color: theme.colors.text }
         ]}>
-          {displayText}
+          {getDisplayText()}
         </Text>
         <Ionicons name="chevron-down" size={20} color={theme.colors.text} />
       </TouchableOpacity>
@@ -50,7 +93,7 @@ export const Picker = ({
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setModalVisible(false)}
+          onPress={() => !multiple && setModalVisible(false)}
         >
           <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
             <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
@@ -65,27 +108,36 @@ export const Picker = ({
                   key={option.value}
                   style={[
                     styles.option,
-                    selectedValue === option.value && [styles.selectedOption, { backgroundColor: theme.colors.primary + '20' }],
+                    isSelected(option.value) && [styles.selectedOption, { backgroundColor: theme.colors.primary + '20' }],
                     { borderBottomColor: theme.colors.border }
                   ]}
-                  onPress={() => {
-                    onValueChange(option.value);
-                    setModalVisible(false);
-                  }}
+                  onPress={() => handleSelect(option.value)}
                 >
                   <Text style={[
                     styles.optionText,
-                    selectedValue === option.value && [styles.selectedOptionText, { color: theme.colors.primary }],
+                    isSelected(option.value) && [styles.selectedOptionText, { color: theme.colors.primary }],
                     { color: theme.colors.text }
                   ]}>
                     {option.label}
                   </Text>
-                  {selectedValue === option.value && (
+                  {isSelected(option.value) && (
                     <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
                   )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            {multiple && (
+              <View style={[styles.modalFooter, { borderTopColor: theme.colors.border }]}>
+                <TouchableOpacity
+                  style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={[styles.doneButtonText, { color: theme.dark ? '#000000' : '#FFFFFF' }]}>
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
@@ -153,5 +205,19 @@ const styles = StyleSheet.create({
   },
   selectedOptionText: {
     fontWeight: '500',
+  },
+  modalFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+  },
+  doneButton: {
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 }); 

@@ -14,9 +14,9 @@ module.exports = (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, config.jwtSecret);
     
-    // Handle both token formats (from registration and login)
+    // Handle both token formats (userId and id)
     req.user = {
-      id: decoded.userId || decoded.user?.id
+      id: decoded.userId || decoded.id
     };
 
     if (!req.user.id) {

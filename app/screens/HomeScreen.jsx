@@ -16,8 +16,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../components/ui/Card';
 import { Picker } from '../components/ui/Picker';
 import ProgressCircle from '../components/ui/ProgressCircle';
+import { useAuth } from '../context/AuthContext';
+import { useMeals } from '../context/MealsContext';
 import { useTheme } from '../context/ThemeContext';
-import MongoDBService, { mongodbService } from '../services/mongodb.service';
+import { mongodbService } from '../services/mongodb.service';
 
 const MOTIVATIONAL_QUOTES = [
   "Stay hydrated! 💧",
@@ -30,23 +32,32 @@ const MOTIVATIONAL_QUOTES = [
 
 const HomeScreen = () => {
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const { user } = useAuth();
+  const { meals, loading: mealsLoading, loadMeals, addMeal: addMealToContext, deleteMeal: deleteMealFromContext } = useMeals();
   const [modalVisible, setModalVisible] = useState(false);
+  const [newMeal, setNewMeal] = useState({
+    name: '',
+    quantity: '',
+    unit: 'plate',
+    type: 'breakfast',
+  });
   const [loading, setLoading] = useState(true);
-  const [newMeal, setNewMeal] = useState({ name: '', calories: '', type: 'Snack' });
-  const [meals, setMeals] = useState([]);
-  const [profile, setProfile] = useState(null);
-  const [goalCalories, setGoalCalories] = useState(0);
   const [streak, setStreak] = useState(0);
+  const [profile, setProfile] = useState(null);
+  const goalCalories = profile?.dailyCalorieGoal || 2000;
   const [quote, setQuote] = useState('');
   const [todayWater, setTodayWater] = useState(0);
   const [todayCalories, setTodayCalories] = useState(0);
+  const navigation = useNavigation();
+  const [mealSuggestions, setMealSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [allowedUnits, setAllowedUnits] = useState(null);
 
   const mealTypes = [
-    { label: 'Breakfast', value: 'Breakfast' },
-    { label: 'Lunch', value: 'Lunch' },
-    { label: 'Dinner', value: 'Dinner' },
-    { label: 'Snack', value: 'Snack' }
+    { label: 'Breakfast', value: 'breakfast' },
+    { label: 'Lunch', value: 'lunch' },
+    { label: 'Dinner', value: 'dinner' },
+    { label: 'Snack', value: 'snack' }
   ];
 
   const renderPremiumFeature = (title, icon) => (
@@ -67,66 +78,12 @@ const HomeScreen = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Load user profile
-      const userData = await mongodbService.getProfile();
-      setProfile(userData.profile);
+      await loadMeals();
+      setProfile(user?.profile);
       
-      // Calculate daily calorie goal using static method
-      const dailyGoal = MongoDBService.calculateDailyCalories(userData.profile);
-      setGoalCalories(dailyGoal);
-
-      // Load today's meals
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const mealsData = await mongodbService.getMeals();
-      const todaysMeals = mealsData.filter(meal => {
-        const mealDate = new Date(meal.createdAt);
-        mealDate.setHours(0, 0, 0, 0);
-        return mealDate.getTime() === today.getTime();
-      });
-      setMeals(todaysMeals);
-
-      // Calculate today's total calories
-      const totalCalories = todaysMeals.reduce((sum, meal) => sum + (parseInt(meal.calories) || 0), 0);
-      setTodayCalories(totalCalories);
-
-      // Load water logs (handle premium feature gracefully)
-      try {
-        const waterLogs = await mongodbService.getWaterLogs();
-        const todayWaterLogs = waterLogs.filter(log => {
-          const logDate = new Date(log.createdAt);
-          logDate.setHours(0, 0, 0, 0);
-          return logDate.getTime() === today.getTime();
-        });
-        const totalWater = todayWaterLogs.reduce((sum, log) => sum + (log.amount || 0), 0);
-        setTodayWater(totalWater);
-      } catch (error) {
-        if (error.message?.includes('premium')) {
-          console.log('Water tracking is a premium feature');
-        } else {
-          console.error('Error loading water logs:', error);
-        }
-        setTodayWater(0);
-      }
-
       // Calculate streak
-      let streakCount = 0;
-      let currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
-
-      while (true) {
-        const dayMeals = mealsData.filter(meal => {
-          const mealDate = new Date(meal.createdAt);
-          mealDate.setHours(0, 0, 0, 0);
-          return mealDate.getTime() === currentDate.getTime();
-        });
-
-        if (dayMeals.length === 0) break;
-        streakCount++;
-        currentDate.setDate(currentDate.getDate() - 1);
-      }
+      const streakCount = calculateStreak(meals || []);
       setStreak(streakCount);
-
     } catch (error) {
       console.error('Error loading data:', error);
       Alert.alert('Error', 'Failed to load some data. Please try again.');
@@ -135,23 +92,121 @@ const HomeScreen = () => {
     }
   };
 
+  const calculateStreak = (meals) => {
+    if (!meals || meals.length === 0) return 0;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let streak = 0;
+    let currentDate = new Date(today);
+
+    while (true) {
+      const dateStr = currentDate.toISOString().split('T')[0];
+      const hasMeals = meals.some(meal => meal.date === dateStr);
+      
+      if (!hasMeals) break;
+      
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    }
+
+    return streak;
+  };
+
+  // Recalculate totals when meals change
+  useEffect(() => {
+    if (meals) {
+      const totalCals = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+      setTodayCalories(totalCals);
+    }
+  }, [meals]);
+
+  const UNIT_CALORIES = {
+    'plate': 350,
+    'bowl': 250,
+    'half bowl': 125,
+    'cup': 150,
+    'glass': 100,
+    'piece': 80,
+    'serving': 200,
+    'slice': 90,
+    'spoon': 40,
+  };
+  const UNIT_OPTIONS = [
+    { label: 'Plate', value: 'plate' },
+    { label: 'Bowl', value: 'bowl' },
+    { label: 'Half Bowl', value: 'half bowl' },
+    { label: 'Cup', value: 'cup' },
+    { label: 'Glass', value: 'glass' },
+    { label: 'Piece', value: 'piece' },
+    { label: 'Serving', value: 'serving' },
+    { label: 'Slice', value: 'slice' },
+    { label: 'Spoon', value: 'spoon' },
+  ];
+
+  const parseQuantityToCalories = (quantity, unit) => {
+    if (!quantity || !unit) return 0;
+    let amount = parseFloat(quantity);
+    if (isNaN(amount)) return 0;
+    const caloriesPerUnit = UNIT_CALORIES[unit] || 0;
+    return Math.round(amount * caloriesPerUnit);
+  };
+
+  // Fetch meal suggestions as user types
+  const fetchMealSuggestions = async (query) => {
+    if (!query || query.length < 2) {
+      setMealSuggestions([]);
+      setShowSuggestions(false);
+      setAllowedUnits(null);
+      return;
+    }
+    try {
+      const suggestions = await mongodbService.getMealSuggestions();
+      // Filter suggestions by query
+      const filtered = suggestions.filter(m => m.name.toLowerCase().includes(query.toLowerCase()));
+      setMealSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } catch (e) {
+      setMealSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // When user selects a suggestion
+  const handleSuggestionSelect = (suggestion) => {
+    setNewMeal({ ...newMeal, name: suggestion.name });
+    setAllowedUnits(suggestion.units.map(u => u.unit));
+    setShowSuggestions(false);
+    // If current unit is not allowed, reset to first allowed
+    if (!suggestion.units.some(u => u.unit === newMeal.unit)) {
+      setNewMeal(prev => ({ ...prev, unit: suggestion.units[0]?.unit || 'plate' }));
+    }
+  };
+
   const addMeal = async () => {
-    if (!newMeal.name || !newMeal.calories || !newMeal.type) {
+    if (!newMeal.name || !newMeal.quantity || !newMeal.unit || !newMeal.type) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
+    if (allowedUnits && !allowedUnits.includes(newMeal.unit)) {
+      Alert.alert('Invalid Unit', `You cannot log ${newMeal.name} in ${newMeal.unit} unit. Allowed units: ${allowedUnits.join(', ')}`);
+      return;
+    }
     try {
       setLoading(true);
+      const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit);
       const mealData = {
         name: newMeal.name,
-        calories: parseInt(newMeal.calories),
+        calories,
         type: newMeal.type,
+        quantity: `${newMeal.quantity} ${newMeal.unit}`,
       };
-
-      const createdMeal = await mongodbService.createMeal(mealData);
-      setMeals([...meals, createdMeal]);
-      setNewMeal({ name: '', calories: '', type: 'Snack' });
+      await addMealToContext(mealData);
+      setNewMeal({ name: '', quantity: '', unit: 'plate', type: 'breakfast' });
+      setAllowedUnits(null);
+      setShowSuggestions(false);
+      setMealSuggestions([]);
       setModalVisible(false);
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -160,7 +215,7 @@ const HomeScreen = () => {
     }
   };
 
-  const deleteMeal = async (mealId, index) => {
+  const deleteMeal = async (mealId) => {
     Alert.alert(
       "Delete Meal",
       "Are you sure you want to delete this meal?",
@@ -174,10 +229,7 @@ const HomeScreen = () => {
           onPress: async () => {
             try {
               setLoading(true);
-              await mongodbService.deleteMeal(mealId);
-              const newMeals = [...meals];
-              newMeals.splice(index, 1);
-              setMeals(newMeals);
+              await deleteMealFromContext(mealId);
             } catch (error) {
               Alert.alert('Error', error.message);
             } finally {
@@ -190,13 +242,15 @@ const HomeScreen = () => {
     );
   };
 
-  const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaysMeals = meals.filter(meal => meal.date === todayStr);
+  const totalCalories = todaysMeals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
   const remainingCalories = goalCalories - totalCalories;
   const progress = Math.min(totalCalories / goalCalories, 1);
 
   if (loading && !profile) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
@@ -205,184 +259,192 @@ const HomeScreen = () => {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.greeting, { color: theme.colors.text }]}>
-          Hello, {profile?.name || 'there'}!
-        </Text>
-        <Text style={[styles.motivationalText, { color: theme.colors.text }]}>
-          {quote}
-        </Text>
-      </View>
-
-      {/* Quick Actions */}
-      <View style={styles.quickActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => navigation.navigate('Water')}
-        >
-          <Ionicons name="water" size={24} color="white" />
-          <Text style={styles.actionButtonText}>Log Water</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => navigation.navigate('Meals')}
-        >
-          <Ionicons name="restaurant" size={24} color="white" />
-          <Text style={styles.actionButtonText}>Log Meal</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => navigation.navigate('WeightLog')}
-        >
-          <Ionicons name="scale" size={24} color="white" />
-          <Text style={styles.actionButtonText}>Log Weight</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Premium Features Preview */}
-      <View style={styles.premiumContainer}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-          Premium Features
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {renderPremiumFeature('Custom Meal Plans', 'restaurant')}
-          {renderPremiumFeature('Workout Library', 'fitness')}
-          {renderPremiumFeature('Progress Analytics', 'analytics')}
-          {renderPremiumFeature('Expert Consultation', 'people')}
-        </ScrollView>
-      </View>
-
-      <Card style={styles.calorieCard}>
-        <ProgressCircle
-          size={120}
-          progress={progress}
-          strokeWidth={12}
-          progressColor={theme.colors.primary}
-          backgroundColor={theme.colors.border}
-        >
-          <View style={styles.calorieCircleContent}>
-            <Text style={[styles.calorieNumber, { color: theme.colors.text }]}>{totalCalories}</Text>
-            <Text style={[styles.calorieLabel, { color: theme.colors.text }]}>consumed</Text>
-          </View>
-        </ProgressCircle>
-        <View style={styles.calorieInfo}>
-          <Text style={[styles.goalText, { color: theme.colors.text }]}>Goal: {goalCalories}</Text>
-          <Text style={[styles.remainingText, { color: theme.colors.text }]}>
-            Remaining: {remainingCalories}
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={[styles.greeting, { color: theme.colors.text }]}>
+            Hello, {profile?.name || 'there'}!
+          </Text>
+          <Text style={[styles.motivationalText, { color: theme.colors.text }]}>
+            {quote}
           </Text>
         </View>
-      </Card>
 
-      <Card style={styles.mealsCard}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Today's Meals</Text>
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
           <TouchableOpacity
-            style={styles.quickAddButton}
-            onPress={() => setModalVisible(true)}
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
+            onPress={() => navigation.navigate('Water')}
           >
-            <Ionicons name="add-circle" size={24} color={theme.colors.primary} />
+            <Ionicons name="water" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Log Water</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
+            onPress={() => navigation.navigate('Meals')}
+          >
+            <Ionicons name="restaurant" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Log Meal</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
+            onPress={() => navigation.navigate('WeightLog')}
+          >
+            <Ionicons name="scale" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Log Weight</Text>
           </TouchableOpacity>
         </View>
 
-        {meals.map((meal, index) => (
-          <View key={meal._id || index} style={styles.mealItem}>
-            <View>
-              <Text style={[styles.mealName, { color: theme.colors.text }]}>{meal.name}</Text>
-              <Text style={[styles.mealType, { color: theme.colors.text }]}>{meal.type}</Text>
-            </View>
-            <View style={styles.mealRight}>
-              <Text style={[styles.mealCalories, { color: theme.colors.primary }]}>
-                {meal.calories} cal
-              </Text>
-              <TouchableOpacity
-                onPress={() => deleteMeal(meal._id, index)}
-                style={styles.deleteButton}
-              >
-                <Ionicons name="trash-outline" size={20} color="#FF6B6B" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-
-        {meals.length === 0 && (
-          <Text style={[styles.emptyText, { color: theme.colors.text }]}>
-            No meals logged today. Tap + to add one!
+        {/* Premium Features Preview */}
+        <View style={styles.premiumContainer}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+            Premium Features
           </Text>
-        )}
-      </Card>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {renderPremiumFeature('Custom Meal Plans', 'restaurant')}
+            {renderPremiumFeature('Workout Library', 'fitness')}
+            {renderPremiumFeature('Expert Consultation', 'people')}
+          </ScrollView>
+        </View>
 
-      <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text style={styles.addButtonText}>Add Meal</Text>
-      </TouchableOpacity>
+        <Card style={styles.calorieCard}>
+          <ProgressCircle
+            size={120}
+            progress={progress}
+            strokeWidth={12}
+            progressColor={theme.colors.primary}
+            backgroundColor={theme.colors.border}
+          >
+            <View style={styles.calorieCircleContent}>
+              <Text style={[styles.calorieNumber, { color: theme.colors.text }]}>{totalCalories}</Text>
+              <Text style={[styles.calorieLabel, { color: theme.colors.text }]}>consumed</Text>
+            </View>
+          </ProgressCircle>
+          <View style={styles.calorieInfo}>
+            <Text style={[styles.goalText, { color: theme.colors.text }]}>Goal: {goalCalories}</Text>
+            <Text style={[styles.remainingText, { color: theme.colors.text }]}>
+              Remaining: {remainingCalories}
+            </Text>
+          </View>
+        </Card>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Add New Meal</Text>
-            
-            <TextInput
-              style={[styles.input, { 
-                backgroundColor: theme.colors.background,
-                color: theme.colors.text,
-                borderColor: theme.colors.border
-              }]}
-              placeholder="Meal Name"
-              placeholderTextColor="#8E8E93"
-              value={newMeal.name}
-              onChangeText={(text) => setNewMeal({ ...newMeal, name: text })}
-            />
-            
-            <TextInput
-              style={[styles.input, { 
-                backgroundColor: theme.colors.background,
-                color: theme.colors.text,
-                borderColor: theme.colors.border
-              }]}
-              placeholder="Calories"
-              placeholderTextColor="#8E8E93"
-              keyboardType="numeric"
-              value={newMeal.calories}
-              onChangeText={(text) => setNewMeal({ ...newMeal, calories: text })}
-            />
+        <Card style={styles.mealsCard}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Today's Meals</Text>
+            <TouchableOpacity
+              style={[styles.addMealButton, { backgroundColor: theme.colors.primary }]}
+              onPress={() => setModalVisible(true)}
+            >
+              <Ionicons name="add" size={24} color="white" />
+              <Text style={styles.addMealButtonText}>Add Meal</Text>
+            </TouchableOpacity>
+          </View>
+          {!todaysMeals ? (
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          ) : todaysMeals.length === 0 ? (
+            <Text style={[styles.emptyText, { color: theme.colors.text }]}>No meals logged today</Text>
+          ) : (
+            todaysMeals.map((meal, index) => (
+              <View key={meal._id || index} style={styles.mealItem}>
+                <View>
+                  <Text style={[styles.mealName, { color: theme.colors.text }]}>{meal.name || 'Unnamed Meal'}</Text>
+                  <Text style={[styles.mealType, { color: theme.colors.text }]}>{meal.type ? meal.type.charAt(0).toUpperCase() + meal.type.slice(1) : 'Other'}</Text>
+                </View>
+                <View style={styles.mealRight}>
+                  <Text style={[styles.mealCalories, { color: theme.colors.text }]}>{meal.calories || 0} cal</Text>
+                  <TouchableOpacity style={styles.deleteButton} onPress={() => deleteMeal(meal._id)}>
+                    <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+        </Card>
 
-            <Picker
-              label="Meal Type"
-              selectedValue={newMeal.type}
-              onValueChange={(value) => setNewMeal({ ...newMeal, type: value })}
-              options={mealTypes}
-              placeholder="Select Meal Type"
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton, { backgroundColor: theme.colors.background }]}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={[styles.cancelButtonText, { color: theme.colors.text }]}>Cancel</Text>
-              </TouchableOpacity>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Add New Meal</Text>
               
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton, { backgroundColor: theme.colors.primary }]}
-                onPress={addMeal}
-              >
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
+              <TextInput
+                style={[styles.input, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
+                placeholder="Meal Name"
+                placeholderTextColor="#8E8E93"
+                value={newMeal.name}
+                onChangeText={text => {
+                  setNewMeal({ ...newMeal, name: text });
+                  fetchMealSuggestions(text);
+                  setAllowedUnits(null); // Reset allowed units until suggestion is picked
+                }}
+                autoCorrect={false}
+              />
+              
+              {showSuggestions && (
+                <View style={{ backgroundColor: theme.colors.card, borderRadius: 8, maxHeight: 120, marginBottom: 8 }}>
+                  {mealSuggestions.map(suggestion => (
+                    <TouchableOpacity
+                      key={suggestion.id}
+                      style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}
+                      onPress={() => handleSuggestionSelect(suggestion)}
+                    >
+                      <Text style={{ color: theme.colors.text }}>{suggestion.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+              
+              <TextInput
+                style={[styles.input, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
+                placeholder="Quantity"
+                placeholderTextColor="#8E8E93"
+                keyboardType="numeric"
+                value={newMeal.quantity}
+                onChangeText={(text) => setNewMeal({ ...newMeal, quantity: text })}
+              />
+
+              <Picker
+                label="Unit"
+                selectedValue={newMeal.unit}
+                onValueChange={(value) => setNewMeal({ ...newMeal, unit: value })}
+                options={(allowedUnits ? UNIT_OPTIONS.filter(opt => allowedUnits.includes(opt.value)) : UNIT_OPTIONS)}
+                placeholder="Select Unit"
+              />
+
+              <Picker
+                label="Meal Type"
+                selectedValue={newMeal.type}
+                onValueChange={(value) => setNewMeal({ ...newMeal, type: value })}
+                options={mealTypes}
+                placeholder="Select Meal Type"
+              />
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton, { backgroundColor: theme.colors.background }]}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={[styles.cancelButtonText, { color: theme.colors.text }]}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.saveButton, { backgroundColor: theme.colors.primary }]}
+                  onPress={addMeal}
+                >
+                  <Text style={styles.saveButtonText}>Save</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -520,6 +582,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  addMealButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  addMealButtonText: {
+    color: 'white',
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: '500',
+  },
   mealItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -553,20 +628,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.7,
     marginTop: 20,
-  },
-  addButton: {
-    position: 'absolute',
-    bottom: 20,
-    left: 16,
-    right: 16,
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    marginBottom: 20,
   },
   modalContainer: {
     flex: 1,

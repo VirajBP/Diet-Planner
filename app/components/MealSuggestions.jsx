@@ -1,18 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    Dimensions,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { Card, useTheme as usePaperTheme } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
-import MongoDBService from '../services/MongoDBService';
+import { mongodbService } from '../services/mongodb.service';
 
 const { width } = Dimensions.get('window');
 
@@ -167,7 +167,7 @@ const MealSuggestions = () => {
 
     setLoading(true);
     try {
-      const response = await MongoDBService.getMealSuggestions(customIngredients);
+      const response = await mongodbService.getMealSuggestions(customIngredients);
       setSuggestions(response.suggestions || []);
     } catch (error) {
       console.error('Error getting meal suggestions:', error);

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
@@ -18,6 +19,7 @@ import { mongodbService } from '../services/mongodb.service';
 const WeightLogScreen = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
   const [weightLogs, setWeightLogs] = useState([]);
   const [newWeight, setNewWeight] = useState('');
@@ -155,7 +157,7 @@ const WeightLogScreen = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>Weight Tracker</Text>

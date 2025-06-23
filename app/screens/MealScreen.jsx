@@ -2,36 +2,48 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useMeals } from '../context/MealsContext';
 import { useTheme } from '../context/ThemeContext';
-import { mongodbService } from '../services/mongodb.service';
 
 const MealScreen = () => {
   const { theme } = useTheme();
-  const [meals, setMeals] = useState([]);
+  const { meals, loading: mealsLoading, loadMeals, addMeal: addMealToContext, deleteMeal: deleteMealFromContext } = useMeals();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [newMeal, setNewMeal] = useState({
     type: 'breakfast',
     name: '',
-    calories: '',
+    quantity: '',
     ingredients: '',
   });
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [customIngredients, setCustomIngredients] = useState('');
   const navigation = useNavigation();
+
+  const UNIT_CALORIES = {
+    'plate': 350,
+    'bowl': 250,
+    'half bowl': 125,
+    'cup': 150,
+    'glass': 100,
+    'piece': 80,
+    'serving': 200,
+    'slice': 90,
+    'spoon': 40,
+  };
 
   const dynamicStyles = {
     container: {
@@ -271,38 +283,41 @@ const MealScreen = () => {
 
   useEffect(() => {
     loadMeals();
-  }, []);
+  }, [loadMeals]);
 
-  const loadMeals = async () => {
-    try {
-      setLoading(true);
-      const mealsData = await mongodbService.getMeals();
-      setMeals(mealsData);
-    } catch (error) {
-      console.error('Error loading meals:', error);
-      Alert.alert('Error', 'Failed to load meals');
-    } finally {
-      setLoading(false);
+  const parseQuantityToCalories = (quantity) => {
+    if (!quantity) return 0;
+    const match = quantity.match(/([\d.]+)\s*(\w+|half bowl|and half bowl)/i);
+    if (!match) return 0;
+    let amount = parseFloat(match[1]);
+    let unit = match[2].toLowerCase();
+    if (unit.includes('half')) {
+      amount = 0.5;
+      unit = 'bowl';
     }
+    const caloriesPerUnit = UNIT_CALORIES[unit] || 0;
+    return Math.round(amount * caloriesPerUnit);
   };
 
   const addMeal = async () => {
-    if (!newMeal.name || !newMeal.calories || !newMeal.type) {
+    if (!newMeal.name || !newMeal.quantity || !newMeal.type) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     try {
       setLoading(true);
+      const calories = parseQuantityToCalories(newMeal.quantity);
       const mealData = {
         name: newMeal.name,
-        calories: parseInt(newMeal.calories),
+        calories,
         type: newMeal.type,
+        quantity: newMeal.quantity,
+        ingredients: newMeal.ingredients ? newMeal.ingredients.split(',').map(i => i.trim()) : []
       };
 
-      const createdMeal = await mongodbService.createMeal(mealData);
-      setMeals([...meals, createdMeal]);
-      setNewMeal({ name: '', calories: '', type: 'Snack' });
+      await addMealToContext(mealData);
+      setNewMeal({ name: '', quantity: '', type: 'breakfast', ingredients: '' });
       setModalVisible(false);
     } catch (error) {
       console.error('Error adding meal:', error);
@@ -315,9 +330,7 @@ const MealScreen = () => {
   const deleteMeal = async (mealId) => {
     try {
       setLoading(true);
-      await mongodbService.deleteMeal(mealId);
-      const updatedMeals = meals.filter(meal => meal._id !== mealId);
-      setMeals(updatedMeals);
+      await deleteMealFromContext(mealId);
     } catch (error) {
       console.error('Error deleting meal:', error);
       Alert.alert('Error', error.message);
@@ -339,50 +352,43 @@ const MealScreen = () => {
     }
   };
 
-  const renderMealItem = ({ item }) => {
-    const meals = item.meals.map((meal) => (
-      <View key={meal.id || `${item.date}-${meal.type}-${meal.name}`} style={[dynamicStyles.mealCard, { backgroundColor: theme.colors.card }]}>
-        <View style={dynamicStyles.mealHeader}>
-          <Text style={[dynamicStyles.mealName, { color: theme.colors.text }]}>{meal.name}</Text>
-          <TouchableOpacity
-            style={dynamicStyles.deleteButton}
-            onPress={() => {
-              Alert.alert(
-                'Delete Meal',
-                'Are you sure you want to delete this meal?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: () => deleteMeal(meal.id)
-                  }
-                ]
-              );
-            }}
-          >
-            <Ionicons name="trash-outline" size={24} color={theme.colors.error} />
-          </TouchableOpacity>
-        </View>
-        <Text style={[dynamicStyles.mealType, { color: theme.colors.text }]}>{meal.type}</Text>
-        <Text style={[dynamicStyles.mealCalories, { color: theme.colors.primary }]}>
-          {meal.calories} calories
+  const renderMealItem = ({ item, index }) => (
+    <View key={`${item._id || item.name || index}-${item.date}`} style={[dynamicStyles.mealCard, { backgroundColor: theme.colors.card }]}>
+      <View style={dynamicStyles.mealHeader}>
+        <Text style={[dynamicStyles.mealName, { color: theme.colors.text }]}>{item.name || 'Unnamed Meal'}</Text>
+        <TouchableOpacity
+          style={dynamicStyles.deleteButton}
+          onPress={() => {
+            Alert.alert(
+              'Delete Meal',
+              'Are you sure you want to delete this meal?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: () => deleteMeal(item._id)
+                }
+              ]
+            );
+          }}
+        >
+          <Ionicons name="trash-outline" size={24} color={theme.colors.error} />
+        </TouchableOpacity>
+      </View>
+      <Text style={[dynamicStyles.mealType, { color: theme.colors.text }]}>
+        {item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'Other'}
+      </Text>
+      <Text style={[dynamicStyles.mealCalories, { color: theme.colors.primary }]}>
+        {item.calories || 0} calories
+      </Text>
+      {item.ingredients && item.ingredients.length > 0 && (
+        <Text style={[dynamicStyles.mealIngredients, { color: theme.colors.text + '80' }]}>
+          {Array.isArray(item.ingredients) ? item.ingredients.join(', ') : item.ingredients}
         </Text>
-        {meal.ingredients && meal.ingredients.length > 0 && (
-          <Text style={[dynamicStyles.mealIngredients, { color: theme.colors.text + '80' }]}>
-            {Array.isArray(meal.ingredients) ? meal.ingredients.join(', ') : meal.ingredients}
-          </Text>
-        )}
-      </View>
-    ));
-
-    return (
-      <View style={dynamicStyles.dateGroup}>
-        <Text style={[dynamicStyles.dateHeader, { color: theme.colors.text }]}>{item.date}</Text>
-        {meals}
-      </View>
-    );
-  };
+      )}
+    </View>
+  );
 
   const renderAddMealModal = () => (
     <Modal
@@ -449,14 +455,13 @@ const MealScreen = () => {
           </View>
 
           <View style={dynamicStyles.inputContainer}>
-            <Text style={[dynamicStyles.inputLabel, { color: theme.colors.text }]}>Calories</Text>
+            <Text style={[dynamicStyles.inputLabel, { color: theme.colors.text }]}>Quantity (e.g., 1 plate, 1 bowl, 1.5 bowl)</Text>
             <TextInput
               style={[dynamicStyles.input, { backgroundColor: theme.colors.card, color: theme.colors.text }]}
-              value={newMeal.calories}
-              onChangeText={(text) => setNewMeal({ ...newMeal, calories: text })}
-              placeholder="Enter calories"
+              value={newMeal.quantity}
+              onChangeText={(text) => setNewMeal({ ...newMeal, quantity: text })}
+              placeholder="e.g., 1 plate, 1 bowl, 1.5 bowl"
               placeholderTextColor={theme.colors.text}
-              keyboardType="numeric"
             />
           </View>
 
@@ -507,7 +512,7 @@ const MealScreen = () => {
               onPress={() => {
                 setNewMeal({
                   name: suggestion.name,
-                  calories: suggestion.calories.toString(),
+                  quantity: suggestion.quantity,
                   type: mealType.charAt(0).toUpperCase() + mealType.slice(1)
                 });
                 setModalVisible(true);
@@ -529,7 +534,7 @@ const MealScreen = () => {
     );
   };
 
-  if (loading && !meals.length) {
+  if (loading && !meals) {
     return (
       <SafeAreaView style={[dynamicStyles.container, { backgroundColor: theme.colors.background }]}>
         <View style={dynamicStyles.loadingContainer}>
@@ -540,7 +545,7 @@ const MealScreen = () => {
   }
 
   return (
-    <SafeAreaView style={[dynamicStyles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[dynamicStyles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
       <View style={dynamicStyles.header}>
         <Text style={[dynamicStyles.title, { color: theme.colors.text }]}>My Meals</Text>
         <View style={dynamicStyles.headerButtons}>
@@ -561,15 +566,15 @@ const MealScreen = () => {
         </View>
       </View>
 
-      {loading && !meals.length ? (
+      {loading ? (
         <View style={dynamicStyles.loadingContainer}>
           <Text style={[dynamicStyles.loadingText, { color: theme.colors.text }]}>Loading meals...</Text>
         </View>
       ) : (
         <FlatList
           data={meals}
+          keyExtractor={(item, index) => `${item._id || item.name || index}-${item.date}`}
           renderItem={renderMealItem}
-          keyExtractor={(item) => item.date}
           contentContainerStyle={dynamicStyles.mealsList}
           ListEmptyComponent={
             <View style={dynamicStyles.emptyContainer}>
