@@ -326,6 +326,7 @@ class MongoDBService {
 
   async deleteWeightLog(logId) {
     try {
+      console.log(logId);
       const response = await this.api.delete(`/weight-logs/${logId}`);
       return response.data;
     } catch (error) {

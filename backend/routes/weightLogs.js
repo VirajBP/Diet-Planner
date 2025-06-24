@@ -98,7 +98,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Weight log not found' });
     }
 
-    await weightLog.remove();
+    await WeightLog.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     res.json({ message: 'Weight log deleted' });
   } catch (error) {
     console.error('Error deleting weight log:', error);

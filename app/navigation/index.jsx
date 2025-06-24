@@ -5,6 +5,7 @@ import React from 'react';
 import { useTheme as usePaperTheme } from 'react-native-paper';
 
 // Import screens
+import CalorieCalculatorScreen from '../screens/CalorieCalculatorScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MealScreen from '../screens/MealScreen';
@@ -23,12 +24,32 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 function TabNavigator() {
   const paperTheme = usePaperTheme();
-  // Custom theme colors
-  const darkBackground = paperTheme.dark ? '#101624' : '#1A1A1A'; // deep blue-black
-  const activeColor = '#2196F3'; // app blue
-  const inactiveColor = paperTheme.dark ? '#8E8E93' : '#B0B0B0';
+  const isDark = paperTheme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   return (
     <Tab.Navigator
       screenOptions={{
@@ -37,12 +58,12 @@ function TabNavigator() {
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
-          backgroundColor: darkBackground,
-          borderTopColor: '#222B3A',
+          backgroundColor: customColors.card,
+          borderTopColor: customColors.border,
           borderTopWidth: 1,
         },
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: inactiveColor,
+        tabBarActiveTintColor: customColors.primary,
+        tabBarInactiveTintColor: isDark ? '#8E8E93' : '#B0B0B0',
       }}
     >
       <Tab.Screen
@@ -106,14 +127,15 @@ function AuthStack() {
 
 function MainStack() {
   const paperTheme = usePaperTheme();
-
+  const isDark = paperTheme.dark;
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
         contentStyle: {
           backgroundColor: paperTheme.colors.background
-        }
+        },
+        navigationBarColor: isDark ? FRESH_CALM_DARK.card : FRESH_CALM_LIGHT.card,
       }}
     >
       <Stack.Screen name="MainTabs" component={TabNavigator} />
@@ -123,6 +145,7 @@ function MainStack() {
       <Stack.Screen name="MealSuggestions" component={MealSuggestionsScreen} />
       <Stack.Screen name="NutritionSearch" component={NutritionSearchScreen} />
       <Stack.Screen name="Reminders" component={RemindersScreen} />
+      <Stack.Screen name="CalorieCalculator" component={CalorieCalculatorScreen} />
     </Stack.Navigator>
   );
 }

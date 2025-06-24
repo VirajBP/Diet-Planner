@@ -20,6 +20,16 @@ const LoginScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
   const { signIn } = useAuth();
+  const isDark = theme.dark;
+  const customColors = isDark ? {
+    primary: '#27AE60',
+    card: '#1E1E1E',
+    text: '#FAFAFA',
+  } : {
+    primary: '#2ECC71',
+    card: '#FFFFFF',
+    text: '#1C1C1C',
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -42,7 +52,7 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.card }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -50,19 +60,19 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.content}>
           <Image
             source={require('../assets/logo.png')}
-            style={[styles.logo, { tintColor: theme.colors.text }]}
+            style={[styles.logo, { tintColor: customColors.text }]}
             resizeMode="contain"
           />
-          <Text style={[styles.title, { color: theme.colors.text }]}>Welcome Back!</Text>
+          <Text style={[styles.title, { color: customColors.text }]}>Welcome Back!</Text>
           
           <TextInput
             style={[styles.input, { 
-              backgroundColor: theme.colors.card,
-              color: theme.colors.text,
-              borderColor: theme.colors.border
+              backgroundColor: customColors.card,
+              color: customColors.text,
+              borderColor: customColors.border
             }]}
             placeholder="Email"
-            placeholderTextColor={theme.colors.text}
+            placeholderTextColor={customColors.text}
             value={email}
             onChangeText={setEmail}
             autoCapitalize="none"
@@ -71,23 +81,23 @@ const LoginScreen = ({ navigation }) => {
           
           <TextInput
             style={[styles.input, { 
-              backgroundColor: theme.colors.card,
-              color: theme.colors.text,
-              borderColor: theme.colors.border
+              backgroundColor: customColors.card,
+              color: customColors.text,
+              borderColor: customColors.border
             }]}
             placeholder="Password"
-            placeholderTextColor={theme.colors.text}
+            placeholderTextColor={customColors.text}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
 
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: theme.colors.primary }]}
+            style={[styles.button, { backgroundColor: customColors.primary }]}
             onPress={handleLogin}
             disabled={loading}
           >
-            <Text style={[styles.buttonText, { color: theme.dark ? '#000000' : '#FFFFFF' }]}>
+            <Text style={[styles.buttonText, { color: customColors.dark ? '#000000' : '#FFFFFF' }]}>
               {loading ? 'Logging in...' : 'Login'}
             </Text>
           </TouchableOpacity>
@@ -96,7 +106,7 @@ const LoginScreen = ({ navigation }) => {
             style={styles.linkContainer}
             onPress={() => navigation.navigate('Register')}
           >
-            <Text style={[styles.linkText, { color: theme.colors.text }]}>
+            <Text style={[styles.linkText, { color: customColors.text }]}>
               Don't have an account? Register
             </Text>
           </TouchableOpacity>

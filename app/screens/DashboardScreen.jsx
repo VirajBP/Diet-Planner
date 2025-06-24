@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +10,28 @@ import { mongodbService } from '../services/mongodb.service';
 
 const { width } = Dimensions.get('window');
 
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const DashboardScreen = () => {
   const { theme } = useTheme();
   const navigation = useNavigation();
@@ -16,6 +39,8 @@ const DashboardScreen = () => {
   const [calorieData, setCalorieData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   useEffect(() => {
     loadDashboardData();
@@ -76,7 +101,20 @@ const DashboardScreen = () => {
     setWeightData(last7Days);
   };
 
+  const getVictoryStyles = () => {
+    return {
+      axis: { stroke: customColors.text + '40' },
+      tickLabels: { fill: customColors.text, fontSize: 12 },
+      axisLabel: { fill: customColors.text, fontSize: 12, padding: 30 },
+      data: { stroke: customColors.primary, strokeWidth: 3 },
+      bar: { fill: customColors.primary, opacity: 0.8 },
+      tooltip: { fill: customColors.text },
+      flyout: { stroke: customColors.primary, fill: customColors.card },
+    };
+  };
+
   const renderWeightChart = () => {
+    const stylesVictory = getVictoryStyles();
     const chartData = weightData
       .filter(item => item.weight !== null)
       .map(item => ({
@@ -88,12 +126,12 @@ const DashboardScreen = () => {
     if (chartData.length === 0) {
       return (
         <View style={styles.emptyChart}>
-          <Ionicons name="trending-up" size={48} color={theme.colors.text + '40'} />
-          <Text style={[styles.emptyChartText, { color: theme.colors.text + '60' }]}>
+          <Ionicons name="trending-up" size={48} color={customColors.text + '40'} />
+          <Text style={[styles.emptyChartText, { color: customColors.text + '60' }]}>
             No weight data available
           </Text>
           <TouchableOpacity
-            style={[styles.addDataButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.addDataButton, { backgroundColor: customColors.primary }]}
             onPress={() => navigation.navigate('WeightLog')}
           >
             <Text style={styles.addDataButtonText}>Add Weight Log</Text>
@@ -111,25 +149,23 @@ const DashboardScreen = () => {
       >
         <VictoryAxis
           style={{
-            axis: { stroke: theme.colors.text + '40' },
-            tickLabels: { fill: theme.colors.text, fontSize: 12 }
+            axis: stylesVictory.axis,
+            tickLabels: stylesVictory.tickLabels
           }}
         />
         <VictoryAxis
           dependentAxis
           style={{
-            axis: { stroke: theme.colors.text + '40' },
-            tickLabels: { fill: theme.colors.text, fontSize: 12 }
+            axis: stylesVictory.axis,
+            tickLabels: stylesVictory.tickLabels,
+            axisLabel: stylesVictory.axisLabel
           }}
           label="Weight (kg)"
-          style={{
-            axisLabel: { fill: theme.colors.text, fontSize: 12, padding: 30 }
-          }}
         />
         <VictoryLine
           data={chartData}
           style={{
-            data: { stroke: theme.colors.primary, strokeWidth: 3 }
+            data: stylesVictory.data
           }}
           animate={{
             duration: 1000,
@@ -137,17 +173,15 @@ const DashboardScreen = () => {
           }}
         />
         <VictoryTooltip
-          style={{ fill: theme.colors.text }}
-          flyoutStyle={{
-            stroke: theme.colors.primary,
-            fill: theme.colors.card
-          }}
+          style={stylesVictory.tooltip}
+          flyoutStyle={stylesVictory.flyout}
         />
       </VictoryChart>
     );
   };
 
   const renderCalorieChart = () => {
+    const stylesVictory = getVictoryStyles();
     const chartData = calorieData.map(item => ({
       x: item.day,
       y: item.actual,
@@ -164,25 +198,23 @@ const DashboardScreen = () => {
       >
         <VictoryAxis
           style={{
-            axis: { stroke: theme.colors.text + '40' },
-            tickLabels: { fill: theme.colors.text, fontSize: 12 }
+            axis: stylesVictory.axis,
+            tickLabels: stylesVictory.tickLabels
           }}
         />
         <VictoryAxis
           dependentAxis
           style={{
-            axis: { stroke: theme.colors.text + '40' },
-            tickLabels: { fill: theme.colors.text, fontSize: 12 }
+            axis: stylesVictory.axis,
+            tickLabels: stylesVictory.tickLabels,
+            axisLabel: stylesVictory.axisLabel
           }}
           label="Calories"
-          style={{
-            axisLabel: { fill: theme.colors.text, fontSize: 12, padding: 30 }
-          }}
         />
         <VictoryBar
           data={chartData}
           style={{
-            data: { fill: theme.colors.primary, opacity: 0.8 }
+            data: stylesVictory.bar
           }}
           animate={{
             duration: 1000,
@@ -193,16 +225,13 @@ const DashboardScreen = () => {
           data={chartData}
           y="target"
           style={{
-            data: { stroke: '#FF5252', strokeWidth: 2, strokeDasharray: '5,5' }
+            data: { stroke: customColors.error, strokeWidth: 2, strokeDasharray: '5,5' }
           }}
           label="Target"
         />
         <VictoryTooltip
-          style={{ fill: theme.colors.text }}
-          flyoutStyle={{
-            stroke: theme.colors.primary,
-            fill: theme.colors.card
-          }}
+          style={stylesVictory.tooltip}
+          flyoutStyle={stylesVictory.flyout}
         />
       </VictoryChart>
     );
@@ -210,83 +239,121 @@ const DashboardScreen = () => {
 
   const renderQuickActions = () => (
     <View style={styles.quickActions}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Actions</Text>
+      <Text style={[styles.sectionTitle, { color: customColors.text }]}>Features</Text>
       <View style={styles.actionGrid}>
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('NutritionSearch')}
         >
-          <Ionicons name="search" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Nutrition Search</Text>
+          <Ionicons name="search" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Nutrition Search</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('Reminders')}
         >
-          <Ionicons name="notifications" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Reminders</Text>
+          <Ionicons name="notifications" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Reminders</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('MealSuggestions')}
         >
-          <Ionicons name="restaurant" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Meal Ideas</Text>
+          <Ionicons name="restaurant" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Meal Ideas</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('WeightLog')}
         >
-          <Ionicons name="scale" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Log Weight</Text>
+          <Ionicons name="scale" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Weight Log</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
+          onPress={() => navigation.navigate('WaterTracker')}
+        >
+          <Ionicons name="water" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Water Tracker</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
+          onPress={() => navigation.navigate('Profile')}
+        >
+          <Ionicons name="person" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
+          onPress={() => navigation.navigate('Settings')}
+        >
+          <Ionicons name="settings" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Settings</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
+  const premiumFeatures = [
+    { icon: 'cart', label: 'Grocery Planner' },
+    { icon: 'nutrition', label: 'AI Meal Suggestions' },
+  ];
+  const renderPremiumFeatures = () => (
+    <View style={styles.premiumSection}>
+      <Text style={[styles.sectionTitle, { color: customColors.text }]}>Premium Features</Text>
+      <View style={styles.premiumGrid}>
+        {premiumFeatures.map((feature, idx) => (
+          <View key={feature.label} style={[styles.premiumCard, { backgroundColor: customColors.card }]}> 
+            <Ionicons name={feature.icon} size={24} color={customColors.primary} />
+            <Text style={[styles.actionText, { color: customColors.text }]}>{feature.label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Dashboard</Text>
-          <Text style={[styles.subtitle, { color: theme.colors.text + '80' }]}>
+          <Text style={[styles.title, { color: customColors.text }]}>Dashboard</Text>
+          <Text style={[styles.subtitle, { color: customColors.text + '80' }]}>
             Track your progress and stay motivated
           </Text>
         </View>
 
         {renderQuickActions()}
+        {renderPremiumFeatures()}
 
         <View style={styles.chartSection}>
           <View style={styles.chartHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Weight Progress</Text>
+            <Text style={[styles.sectionTitle, { color: customColors.text }]}>Weight Progress</Text>
             <TouchableOpacity
-              style={[styles.refreshButton, { backgroundColor: theme.colors.card }]}
+              style={[styles.refreshButton, { backgroundColor: customColors.card }]}
               onPress={loadDashboardData}
             >
-              <Ionicons name="refresh" size={16} color={theme.colors.primary} />
+              <Ionicons name="refresh" size={16} color={customColors.primary} />
             </TouchableOpacity>
           </View>
-          <View style={[styles.chartContainer, { backgroundColor: theme.colors.card }]}>
+          <View style={[styles.chartContainer, { backgroundColor: customColors.card }]}>
             {renderWeightChart()}
           </View>
         </View>
 
         <View style={styles.chartSection}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Weekly Calorie Intake</Text>
-          <View style={[styles.chartContainer, { backgroundColor: theme.colors.card }]}>
+          <Text style={[styles.sectionTitle, { color: customColors.text }]}>Weekly Calorie Intake</Text>
+          <View style={[styles.chartContainer, { backgroundColor: customColors.card }]}>
             {renderCalorieChart()}
           </View>
           <View style={styles.legend}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: theme.colors.primary }]} />
-              <Text style={[styles.legendText, { color: theme.colors.text }]}>Actual</Text>
+              <View style={[styles.legendColor, { backgroundColor: customColors.primary }]} />
+              <Text style={[styles.legendText, { color: customColors.text }]}>Actual</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: '#FF5252' }]} />
-              <Text style={[styles.legendText, { color: theme.colors.text }]}>Target</Text>
+              <View style={[styles.legendColor, { backgroundColor: customColors.error }]} />
+              <Text style={[styles.legendText, { color: customColors.text }]}>Target</Text>
             </View>
           </View>
         </View>
@@ -406,6 +473,35 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 14,
+  },
+  premiumSection: {
+    padding: 20,
+    marginBottom: 20,
+  },
+  premiumGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 20,
+    justifyContent: 'flex-start',
+  },
+  premiumCard: {
+    width: 90,
+    height: 80,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  premiumText: {
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
 

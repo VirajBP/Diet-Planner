@@ -30,6 +30,28 @@ const ALLOWED_UNITS = ['plate', 'bowl', 'cup', 'piece', 'glass', 'spoon', 'slice
 const EXCLUDED_TAGS = ['fat', 'spicy', 'oily'];
 const MEAL_TYPES = ['Breakfast', 'Lunch', 'Snacks', 'Dinner'];
 
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const MealSuggestionsScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -39,6 +61,8 @@ const MealSuggestionsScreen = ({ navigation }) => {
   const [unitSelections, setUnitSelections] = useState({});
   const [expanded, setExpanded] = useState({});
   const [recipeExpanded, setRecipeExpanded] = useState({});
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   const currentWeight = user?.profile?.weight || user?.weight || 70;
   const targetWeight = user?.profile?.targetWeight || user?.targetWeight || 70;
@@ -121,28 +145,28 @@ const MealSuggestionsScreen = ({ navigation }) => {
 
     return (
       <View style={styles.nutritionContainer}>
-        <Text style={[styles.nutritionTitle, { color: theme.colors.text }]}>Nutrition per {selectedUnit}</Text>
+        <Text style={[styles.nutritionTitle, { color: customColors.text }]}>Nutrition per {selectedUnit}</Text>
         <View style={styles.nutritionGrid}>
           <View style={styles.nutritionItem}>
-            <Text style={[styles.nutritionLabel, { color: theme.colors.text + '80' }]}>Calories</Text>
-            <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{unitObj.calories}</Text>
+            <Text style={[styles.nutritionLabel, { color: customColors.text + '80' }]}>Calories</Text>
+            <Text style={[styles.nutritionValue, { color: customColors.primary }]}>{unitObj.calories}</Text>
           </View>
           {unitObj.protein && (
             <View style={styles.nutritionItem}>
-              <Text style={[styles.nutritionLabel, { color: theme.colors.text + '80' }]}>Protein</Text>
-              <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{unitObj.protein}g</Text>
+              <Text style={[styles.nutritionLabel, { color: customColors.text + '80' }]}>Protein</Text>
+              <Text style={[styles.nutritionValue, { color: customColors.primary }]}>{unitObj.protein}g</Text>
             </View>
           )}
           {unitObj.carbs && (
             <View style={styles.nutritionItem}>
-              <Text style={[styles.nutritionLabel, { color: theme.colors.text + '80' }]}>Carbs</Text>
-              <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{unitObj.carbs}g</Text>
+              <Text style={[styles.nutritionLabel, { color: customColors.text + '80' }]}>Carbs</Text>
+              <Text style={[styles.nutritionValue, { color: customColors.primary }]}>{unitObj.carbs}g</Text>
             </View>
           )}
           {unitObj.fat && (
             <View style={styles.nutritionItem}>
-              <Text style={[styles.nutritionLabel, { color: theme.colors.text + '80' }]}>Fat</Text>
-              <Text style={[styles.nutritionValue, { color: theme.colors.primary }]}>{unitObj.fat}g</Text>
+              <Text style={[styles.nutritionLabel, { color: customColors.text + '80' }]}>Fat</Text>
+              <Text style={[styles.nutritionValue, { color: customColors.primary }]}>{unitObj.fat}g</Text>
             </View>
           )}
         </View>
@@ -154,8 +178,8 @@ const MealSuggestionsScreen = ({ navigation }) => {
     if (!meal.recipe || meal.recipe.length === 0) {
       return (
         <View style={styles.noRecipeContainer}>
-          <Ionicons name="book-outline" size={24} color={theme.colors.text + '40'} />
-          <Text style={[styles.noRecipeText, { color: theme.colors.text + '60' }]}>
+          <Ionicons name="book-outline" size={24} color={customColors.text + '40'} />
+          <Text style={[styles.noRecipeText, { color: customColors.text + '60' }]}>
             Recipe not available
           </Text>
         </View>
@@ -164,13 +188,13 @@ const MealSuggestionsScreen = ({ navigation }) => {
 
     return (
       <View style={styles.recipeContainer}>
-        <Text style={[styles.recipeTitle, { color: theme.colors.text }]}>Recipe Steps</Text>
+        <Text style={[styles.recipeTitle, { color: customColors.text }]}>Recipe Steps</Text>
         {meal.recipe.map((step, index) => (
           <View key={index} style={styles.recipeStep}>
-            <View style={[styles.stepNumber, { backgroundColor: theme.colors.primary }]}>
+            <View style={[styles.stepNumber, { backgroundColor: customColors.primary }]}>
               <Text style={styles.stepNumberText}>{index + 1}</Text>
             </View>
-            <Text style={[styles.stepText, { color: theme.colors.text }]}>{step}</Text>
+            <Text style={[styles.stepText, { color: customColors.text }]}>{step}</Text>
           </View>
         ))}
       </View>
@@ -179,10 +203,10 @@ const MealSuggestionsScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <SafeAreaViewRN style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
+      <SafeAreaViewRN style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.text }]}>
+          <ActivityIndicator size="large" color={customColors.primary} />
+          <Text style={[styles.loadingText, { color: customColors.text }]}>
             Loading meal suggestions...
           </Text>
         </View>
@@ -195,12 +219,12 @@ const MealSuggestionsScreen = ({ navigation }) => {
   const sections = groupMeals(safeSuggestions);
 
   return (
-    <SafeAreaViewRN style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
+    <SafeAreaViewRN style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
         renderSectionHeader={({ section: { title } }) => (
-          <Text style={[styles.sectionHeader, { color: theme.colors.text }]}>{title}</Text>
+          <Text style={[styles.sectionHeader, { color: customColors.text }]}>{title}</Text>
         )}
         renderItem={({ item, section }) => {
           const meal = item;
@@ -209,7 +233,7 @@ const MealSuggestionsScreen = ({ navigation }) => {
           const selectedUnit = unitSelections[mealId] || (availableUnits[0]?.unit || 'plate');
           const { qty, totalCalories } = getRecommendedQuantity(meal, selectedUnit, section.title);
           return (
-            <View style={[styles.mealCard, { backgroundColor: theme.colors.card }]}>
+            <View style={[styles.mealCard, { backgroundColor: customColors.card }]}>
               {meal.imageUrl ? (
                 <Image source={{ uri: meal.imageUrl }} style={styles.image} resizeMode="cover" />
               ) : (
@@ -217,12 +241,12 @@ const MealSuggestionsScreen = ({ navigation }) => {
                   <Ionicons name="fast-food-outline" size={40} color="#bbb" />
                 </View>
               )}
-              <Text style={[styles.mealName, { color: theme.colors.text }]}>{meal.name}</Text>
+              <Text style={[styles.mealName, { color: customColors.text }]}>{meal.name}</Text>
               
               <View style={styles.tagsRow}>
                 {meal.tags?.map(tag => (
-                  <View key={tag} style={[styles.tag, { backgroundColor: theme.colors.primary + '33' }]}>
-                    <Text style={[styles.tagText, { color: theme.colors.primary }]}>{tag}</Text>
+                  <View key={tag} style={[styles.tag, { backgroundColor: customColors.primary + '33' }]}>
+                    <Text style={[styles.tagText, { color: customColors.primary }]}>{tag}</Text>
                   </View>
                 ))}
               </View>
@@ -232,68 +256,68 @@ const MealSuggestionsScreen = ({ navigation }) => {
 
               {/* Ingredients Section */}
               <TouchableOpacity onPress={() => handleToggleExpand(mealId)} style={styles.ingredientToggle}>
-                <Text style={[styles.ingredientToggleText, { color: theme.colors.primary }]}>Ingredients</Text>
-                <Ionicons name={expanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={theme.colors.primary} />
+                <Text style={[styles.ingredientToggleText, { color: customColors.primary }]}>Ingredients</Text>
+                <Ionicons name={expanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={customColors.primary} />
               </TouchableOpacity>
               {expanded[mealId] && (
                 <View style={styles.ingredientList}>
                   {meal.ingredients?.map((ing, idx) => (
-                    <Text key={idx} style={[styles.ingredient, { color: theme.colors.text }]}>{ing}</Text>
+                    <Text key={idx} style={[styles.ingredient, { color: customColors.text }]}>{ing}</Text>
                   ))}
                 </View>
               )}
 
               {/* Recipe Section */}
               <TouchableOpacity onPress={() => handleToggleRecipe(mealId)} style={styles.recipeToggle}>
-                <Text style={[styles.recipeToggleText, { color: theme.colors.primary }]}>Recipe</Text>
-                <Ionicons name={recipeExpanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={theme.colors.primary} />
+                <Text style={[styles.recipeToggleText, { color: customColors.primary }]}>Recipe</Text>
+                <Ionicons name={recipeExpanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={customColors.primary} />
               </TouchableOpacity>
               {recipeExpanded[mealId] && renderRecipe(meal)}
 
               <View style={styles.unitRow}>
-                <Text style={[styles.unitLabel, { color: theme.colors.text }]}>Unit:</Text>
+                <Text style={[styles.unitLabel, { color: customColors.text }]}>Unit:</Text>
                 <View style={styles.unitDropdown}>
                   {availableUnits.map(u => (
                     <TouchableOpacity
                       key={u.unit}
-                      style={[styles.unitOption, selectedUnit === u.unit && styles.unitOptionSelected, selectedUnit === u.unit && { backgroundColor: theme.colors.primary }]}
+                      style={[styles.unitOption, selectedUnit === u.unit && styles.unitOptionSelected, selectedUnit === u.unit && { backgroundColor: customColors.primary }]}
                       onPress={() => handleUnitChange(mealId, u.unit)}
                     >
-                      <Text style={[selectedUnit === u.unit ? styles.unitTextSelected : styles.unitText, { color: selectedUnit === u.unit ? '#fff' : theme.colors.text }]}>{u.unit}</Text>
+                      <Text style={[selectedUnit === u.unit ? styles.unitTextSelected : styles.unitText, { color: selectedUnit === u.unit ? '#fff' : customColors.text }]}>{u.unit}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
-              <Text style={[styles.recommendation, { color: theme.colors.text }]}>
-                Recommended: Eat <Text style={[styles.bold, { color: theme.colors.primary }]}>{qty}</Text> {selectedUnit} — <Text style={[styles.bold, { color: theme.colors.primary }]}>{totalCalories}</Text> calories
+              <Text style={[styles.recommendation, { color: customColors.text }]}>
+                Recommended: Eat <Text style={[styles.bold, { color: customColors.primary }]}>{qty}</Text> {selectedUnit} — <Text style={[styles.bold, { color: customColors.primary }]}>{totalCalories}</Text> calories
               </Text>
             </View>
           );
         }}
         ListHeaderComponent={
           <>
-            <View style={[styles.header, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.header, { backgroundColor: customColors.background }]}>
               <TouchableOpacity 
                 style={styles.backButton}
                 onPress={() => navigation.goBack()}
               >
-                <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+                <Ionicons name="arrow-back" size={24} color={customColors.text} />
               </TouchableOpacity>
-              <Text style={[styles.heading, { color: theme.colors.text }]}>Meal Suggestions</Text>
+              <Text style={[styles.heading, { color: customColors.text }]}>Meal Suggestions</Text>
             </View>
             {isPremiumUser && (
-              <View style={[styles.premiumInputContainer, { backgroundColor: theme.colors.card }]}>
-                <Text style={[styles.premiumLabel, { color: theme.colors.text }]}>Custom Ingredients (Premium)</Text>
+              <View style={[styles.premiumInputContainer, { backgroundColor: customColors.card }]}>
+                <Text style={[styles.premiumLabel, { color: customColors.text }]}>Custom Ingredients (Premium)</Text>
                 <TextInput
-                  style={[styles.premiumInput, { color: theme.colors.text, borderColor: theme.colors.border }]}
+                  style={[styles.premiumInput, { color: customColors.text, borderColor: customColors.border }]}
                   value={customIngredients}
                   onChangeText={setCustomIngredients}
                   placeholder="Enter ingredients you have..."
-                  placeholderTextColor={theme.colors.text + '60'}
+                  placeholderTextColor={customColors.text + '60'}
                   multiline
                 />
                 <TouchableOpacity
-                  style={[styles.refreshButton, { backgroundColor: theme.colors.primary }]}
+                  style={[styles.refreshButton, { backgroundColor: customColors.primary }]}
                   onPress={getMealSuggestions}
                 >
                   <Text style={styles.refreshButtonText}>Refresh Suggestions</Text>

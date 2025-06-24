@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Button from '../components/ui/Button';
 import { useOnboarding } from '../context/OnboardingContext';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -35,6 +36,17 @@ const steps = [
 const OnboardingScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { completeOnboarding } = useOnboarding();
+  const { theme } = useTheme();
+  const isDark = theme.dark;
+  const customColors = isDark ? {
+    primary: '#27AE60',
+    card: '#1E1E1E',
+    text: '#FAFAFA',
+  } : {
+    primary: '#2ECC71',
+    card: '#FFFFFF',
+    text: '#1C1C1C',
+  };
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
@@ -63,7 +75,7 @@ const OnboardingScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.card }]}>
       <LinearGradient
         colors={['#1a1a1a', '#2d2d2d']}
         style={styles.gradient}

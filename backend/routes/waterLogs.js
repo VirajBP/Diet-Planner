@@ -64,7 +64,7 @@ router.delete('/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'Water log not found' });
     }
 
-    await waterLog.remove();
+    await WaterLog.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
     res.json({ message: 'Water log deleted' });
   } catch (error) {
     console.error('Error deleting water log:', error);

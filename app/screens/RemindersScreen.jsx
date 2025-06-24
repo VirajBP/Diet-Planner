@@ -1,21 +1,44 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
 import reminderService from '../services/reminderService';
+
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
 
 const RemindersScreen = () => {
   const { theme } = useTheme();
@@ -32,6 +55,9 @@ const RemindersScreen = () => {
     days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
     enabled: true
   });
+  const navigation = useNavigation();
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   useEffect(() => {
     loadReminders();
@@ -173,17 +199,17 @@ const RemindersScreen = () => {
   };
 
   const renderReminderItem = ({ item }) => (
-    <View style={[styles.reminderCard, { backgroundColor: theme.colors.card }]}>
+    <View style={[styles.reminderCard, { backgroundColor: customColors.card }]}>
       <View style={styles.reminderHeader}>
         <View style={styles.reminderInfo}>
-          <Text style={[styles.reminderTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.reminderTitle, { color: customColors.text }]}>
             {item.title}
           </Text>
-          <Text style={[styles.reminderMessage, { color: theme.colors.text + '80' }]}>
+          <Text style={[styles.reminderMessage, { color: customColors.text + '80' }]}>
             {item.message}
           </Text>
           <View style={styles.reminderMeta}>
-            <View style={[styles.timeBadge, { backgroundColor: theme.colors.primary }]}>
+            <View style={[styles.timeBadge, { backgroundColor: customColors.primary }]}>
               <Ionicons name="time" size={12} color="white" />
               <Text style={styles.timeText}>{item.time}</Text>
             </View>
@@ -201,7 +227,7 @@ const RemindersScreen = () => {
           <Switch
             value={item.isActive}
             onValueChange={() => toggleReminder(item)}
-            trackColor={{ false: '#767577', true: theme.colors.primary }}
+            trackColor={{ false: '#767577', true: customColors.primary }}
             thumbColor={item.isActive ? '#f4f3f4' : '#f4f3f4'}
           />
         </View>
@@ -212,15 +238,15 @@ const RemindersScreen = () => {
           style={styles.actionButton}
           onPress={() => openEditModal(item)}
         >
-          <Ionicons name="pencil" size={16} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.primary }]}>Edit</Text>
+          <Ionicons name="pencil" size={16} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.primary }]}>Edit</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => handleDeleteReminder(item._id)}
         >
-          <Ionicons name="trash" size={16} color="#FF5252" />
-          <Text style={[styles.actionText, { color: '#FF5252' }]}>Delete</Text>
+          <Ionicons name="trash" size={16} color={customColors.error} />
+          <Text style={[styles.actionText, { color: customColors.error }]}>Delete</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -238,9 +264,9 @@ const RemindersScreen = () => {
       }}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.modalContent, { backgroundColor: customColors.background }]}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+            <Text style={[styles.modalTitle, { color: customColors.text }]}>
               {editingReminder ? 'Edit Reminder' : 'Add Reminder'}
             </Text>
             <TouchableOpacity
@@ -250,26 +276,26 @@ const RemindersScreen = () => {
                 resetForm();
               }}
             >
-              <Ionicons name="close" size={24} color={theme.colors.text} />
+              <Ionicons name="close" size={24} color={customColors.text} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalBody}>
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Type</Text>
+              <Text style={[styles.inputLabel, { color: customColors.text }]}>Type</Text>
               <View style={styles.typeSelector}>
                 {['meal', 'water', 'exercise', 'weight'].map((type) => (
                   <TouchableOpacity
                     key={type}
                     style={[
                       styles.typeOption,
-                      formData.type === type && { backgroundColor: theme.colors.primary }
+                      formData.type === type && { backgroundColor: customColors.primary }
                     ]}
                     onPress={() => setFormData({ ...formData, type })}
                   >
                     <Text style={[
                       styles.typeOptionText,
-                      { color: formData.type === type ? 'white' : theme.colors.text }
+                      { color: formData.type === type ? 'white' : customColors.text }
                     ]}>
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </Text>
@@ -280,7 +306,7 @@ const RemindersScreen = () => {
 
             {formData.type === 'meal' && (
               <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Meal Type</Text>
+                <Text style={[styles.inputLabel, { color: customColors.text }]}>Meal Type</Text>
                 <View style={styles.typeSelector}>
                   {['breakfast', 'lunch', 'dinner', 'snack'].map((mealType) => (
                     <TouchableOpacity
@@ -378,7 +404,11 @@ const RemindersScreen = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Reminders</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 16 , flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          <Text style={[styles.title, { color: theme.colors.text }]}>Reminders</Text>
+        </TouchableOpacity>
+        
         <View style={styles.headerButtons}>
           <TouchableOpacity
             style={[styles.testButton, { backgroundColor: theme.colors.card }]}

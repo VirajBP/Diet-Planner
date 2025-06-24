@@ -1,24 +1,56 @@
+import { useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
 
 const CalorieCalculatorScreen = () => {
   const { theme } = useTheme();
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('male');
-  const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
+  const { user } = useAuth();
+  const route = useRoute();
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
+  const autofillProfile = route.params?.autofill && (route.params?.profile || user?.profile);
+  const profile = route.params?.profile || user?.profile;
+  const [age, setAge] = useState(autofillProfile ? String(profile?.age || '') : '');
+  const [gender, setGender] = useState(autofillProfile ? (profile?.gender || 'male') : 'male');
+  const [weight, setWeight] = useState(autofillProfile ? String(profile?.weight || '') : '');
+  const [height, setHeight] = useState(autofillProfile ? String(profile?.height || '') : '');
   const [activityLevel, setActivityLevel] = useState('light');
-  const [result, setResult] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [calorieResults, setCalorieResults] = useState(null);
 
   const calculateCalories = () => {
     if (!age || !weight || !height) {
@@ -33,28 +65,32 @@ const CalorieCalculatorScreen = () => {
       bmr = 447.593 + (9.247 * parseFloat(weight)) + (3.098 * parseFloat(height)) - (4.330 * parseFloat(age));
     }
 
-    let totalCalories;
+    let activityMultiplier;
     switch (activityLevel) {
       case 'sedentary':
-        totalCalories = bmr * 1.2;
+        activityMultiplier = 1.2;
         break;
       case 'light':
-        totalCalories = bmr * 1.375;
+        activityMultiplier = 1.375;
         break;
       case 'moderate':
-        totalCalories = bmr * 1.55;
+        activityMultiplier = 1.55;
         break;
       case 'active':
-        totalCalories = bmr * 1.725;
+        activityMultiplier = 1.725;
         break;
       case 'veryActive':
-        totalCalories = bmr * 1.9;
+        activityMultiplier = 1.9;
         break;
       default:
-        totalCalories = bmr * 1.375;
+        activityMultiplier = 1.375;
     }
 
-    setResult(Math.round(totalCalories));
+    const maintain = Math.round(bmr * activityMultiplier);
+    const lose = Math.round(maintain - 500);
+    const gain = Math.round(maintain + 500);
+    setCalorieResults({ maintain, lose, gain });
+    setModalVisible(true);
   };
 
   const GenderButton = ({ title, isSelected }) => (
@@ -62,12 +98,12 @@ const CalorieCalculatorScreen = () => {
       style={[
         styles.genderButton,
         {
-          backgroundColor: isSelected ? theme.colors.primary : theme.colors.card,
+          backgroundColor: isSelected ? customColors.primary : customColors.card,
         },
       ]}
       onPress={() => setGender(title.toLowerCase())}
     >
-      <Text style={[styles.buttonText, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.buttonText, { color: customColors.text }]}>{title}</Text>
     </TouchableOpacity>
   );
 
@@ -76,68 +112,73 @@ const CalorieCalculatorScreen = () => {
       style={[
         styles.activityButton,
         {
-          backgroundColor: isSelected ? theme.colors.primary : theme.colors.card,
+          backgroundColor: isSelected ? customColors.primary : customColors.card,
         },
       ]}
       onPress={() => setActivityLevel(value)}
     >
-      <Text style={[styles.buttonText, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.buttonText, { color: customColors.text }]}>{title}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {autofillProfile && (
+          <Text style={{ color: customColors.primary, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>
+            Your data has been autofilled from your profile.
+          </Text>
+        )}
         <View style={styles.card}>
-          <Text style={[styles.label, { color: theme.colors.text }]}>Age</Text>
+          <Text style={[styles.label, { color: customColors.text }]}>Age</Text>
           <TextInput
             style={[styles.input, { 
-              backgroundColor: theme.colors.inputBackground,
-              color: theme.colors.text,
-              borderColor: theme.colors.border,
+              backgroundColor: customColors.inputBackground,
+              color: customColors.text,
+              borderColor: customColors.border,
             }]}
             value={age}
             onChangeText={setAge}
             keyboardType="numeric"
             placeholder="Enter your age"
-            placeholderTextColor={theme.colors.text}
+            placeholderTextColor={customColors.text}
           />
 
-          <Text style={[styles.label, { color: theme.colors.text }]}>Gender</Text>
+          <Text style={[styles.label, { color: customColors.text }]}>Gender</Text>
           <View style={styles.genderContainer}>
             <GenderButton title="Male" isSelected={gender === 'male'} />
             <GenderButton title="Female" isSelected={gender === 'female'} />
           </View>
 
-          <Text style={[styles.label, { color: theme.colors.text }]}>Weight (kg)</Text>
+          <Text style={[styles.label, { color: customColors.text }]}>Weight (kg)</Text>
           <TextInput
             style={[styles.input, { 
-              backgroundColor: theme.colors.inputBackground,
-              color: theme.colors.text,
-              borderColor: theme.colors.border,
+              backgroundColor: customColors.inputBackground,
+              color: customColors.text,
+              borderColor: customColors.border,
             }]}
             value={weight}
             onChangeText={setWeight}
             keyboardType="numeric"
             placeholder="Enter your weight"
-            placeholderTextColor={theme.colors.text}
+            placeholderTextColor={customColors.text}
           />
 
-          <Text style={[styles.label, { color: theme.colors.text }]}>Height (cm)</Text>
+          <Text style={[styles.label, { color: customColors.text }]}>Height (cm)</Text>
           <TextInput
             style={[styles.input, { 
-              backgroundColor: theme.colors.inputBackground,
-              color: theme.colors.text,
-              borderColor: theme.colors.border,
+              backgroundColor: customColors.inputBackground,
+              color: customColors.text,
+              borderColor: customColors.border,
             }]}
             value={height}
             onChangeText={setHeight}
             keyboardType="numeric"
             placeholder="Enter your height"
-            placeholderTextColor={theme.colors.text}
+            placeholderTextColor={customColors.text}
           />
 
-          <Text style={[styles.label, { color: theme.colors.text }]}>Activity Level</Text>
+          <Text style={[styles.label, { color: customColors.text }]}>Activity Level</Text>
           <View style={styles.activityContainer}>
             <ActivityButton
               title="Sedentary"
@@ -167,24 +208,35 @@ const CalorieCalculatorScreen = () => {
           </View>
 
           <TouchableOpacity
-            style={[styles.calculateButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.calculateButton, { backgroundColor: customColors.primary }]}
             onPress={calculateCalories}
           >
             <Text style={styles.calculateButtonText}>Calculate</Text>
           </TouchableOpacity>
-
-          {result && (
-            <View style={[styles.resultContainer, { backgroundColor: theme.colors.card }]}>
-              <Text style={[styles.resultText, { color: theme.colors.text }]}>
-                Your daily calorie needs:
-              </Text>
-              <Text style={[styles.resultNumber, { color: theme.colors.primary }]}>
-                {result} calories
-              </Text>
-            </View>
-          )}
         </View>
       </ScrollView>
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={[styles.modalOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.4)' }]}> 
+          <View style={[styles.modalContent, { backgroundColor: customColors.card }]}> 
+            <Text style={[styles.modalTitle, { color: customColors.primary }]}>Calorie Recommendations</Text>
+            {calorieResults && (
+              <>
+                <Text style={[styles.resultText, { color: customColors.text }]}>To Maintain: <Text style={{ color: customColors.primary }}>{calorieResults.maintain}</Text> kcal/day</Text>
+                <Text style={[styles.resultText, { color: customColors.text }]}>To Lose Weight: <Text style={{ color: customColors.primary }}>{calorieResults.lose}</Text> kcal/day</Text>
+                <Text style={[styles.resultText, { color: customColors.text }]}>To Gain Weight: <Text style={{ color: customColors.primary }}>{calorieResults.gain}</Text> kcal/day</Text>
+              </>
+            )}
+            <TouchableOpacity style={[styles.closeButton, { backgroundColor: customColors.primary }]} onPress={() => setModalVisible(false)}>
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -252,19 +304,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  resultContainer: {
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 8,
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  resultText: {
-    fontSize: 16,
-    marginBottom: 8,
+  modalContent: {
+    width: '80%',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    elevation: 8,
   },
-  resultNumber: {
-    fontSize: 24,
+  modalTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  resultText: {
+    fontSize: 18,
+    marginVertical: 6,
+    textAlign: 'center',
+  },
+  closeButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 32,
+    borderRadius: 24,
   },
 });
 

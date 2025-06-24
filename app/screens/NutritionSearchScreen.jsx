@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
@@ -25,6 +26,7 @@ const NutritionSearchScreen = () => {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [searchInfo, setSearchInfo] = useState(null);
+  const navigation = useNavigation();
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -242,7 +244,10 @@ const NutritionSearchScreen = () => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 16 , flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
         <Text style={[styles.title, { color: theme.colors.text }]}>Nutrition Search</Text>
+        </TouchableOpacity>
         <Text style={[styles.subtitle, { color: theme.colors.text + '80' }]}>
           Search for food items to view nutrition information
         </Text>

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
   Modal,
   ScrollView,
   StyleSheet,
@@ -21,6 +22,8 @@ import { useMeals } from '../context/MealsContext';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
 
+const { width } = Dimensions.get('window');
+
 const MOTIVATIONAL_QUOTES = [
   "Stay hydrated! 💧",
   "You're doing great! 🌟",
@@ -30,8 +33,32 @@ const MOTIVATIONAL_QUOTES = [
   "Progress over perfection! 📈",
 ];
 
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const HomeScreen = () => {
   const { theme } = useTheme();
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const { user } = useAuth();
   const { meals, loading: mealsLoading, loadMeals, addMeal: addMealToContext, deleteMeal: deleteMealFromContext } = useMeals();
   const [modalVisible, setModalVisible] = useState(false);
@@ -60,15 +87,19 @@ const HomeScreen = () => {
     { label: 'Snack', value: 'snack' }
   ];
 
-  const renderPremiumFeature = (title, icon) => (
+  const renderPremiumFeature = (title, icon) => {
+    if(!user?.isPremium){
+      return(
     <TouchableOpacity
-      style={[styles.premiumFeature, { backgroundColor: theme.colors.card }]}
+      style={[styles.premiumFeature, { backgroundColor: customColors.card }]}
       onPress={() => Alert.alert('Premium Feature', 'Upgrade to premium to access this feature!')}
     >
-      <Ionicons name={icon} size={24} color={theme.colors.primary} />
-      <Text style={[styles.premiumText, { color: theme.colors.text }]}>{title}</Text>
-    </TouchableOpacity>
-  );
+      <Ionicons name={icon} size={24} color={customColors.primary} />
+      <Text style={[styles.premiumText, { color: customColors.text }]}>{title}</Text>
+    </TouchableOpacity>);
+    }
+    return null
+};
 
   useEffect(() => {
     loadData();
@@ -250,81 +281,44 @@ const HomeScreen = () => {
 
   if (loading && !profile) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <ActivityIndicator size="large" color={customColors.primary} />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={[styles.greeting, { color: theme.colors.text }]}>
+          <Text style={[styles.greeting, { color: customColors.text }]}>
             Hello, {profile?.name || 'there'}!
           </Text>
-          <Text style={[styles.motivationalText, { color: theme.colors.text }]}>
+          <Text style={[styles.motivationalText, { color: customColors.text }]}>
             {quote}
           </Text>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => navigation.navigate('Water')}
-          >
-            <Ionicons name="water" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Log Water</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => navigation.navigate('Meals')}
-          >
-            <Ionicons name="restaurant" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Log Meal</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => navigation.navigate('WeightLog')}
-          >
-            <Ionicons name="scale" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Log Weight</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Premium Features Preview */}
-        <View style={styles.premiumContainer}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
-            Premium Features
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {renderPremiumFeature('Custom Meal Plans', 'restaurant')}
-            {renderPremiumFeature('Workout Library', 'fitness')}
-            {renderPremiumFeature('Expert Consultation', 'people')}
-          </ScrollView>
-        </View>
+        
 
         <Card style={styles.calorieCard}>
           <ProgressCircle
             size={120}
             progress={progress}
             strokeWidth={12}
-            progressColor={theme.colors.primary}
-            backgroundColor={theme.colors.border}
+            progressColor={customColors.primary}
+            backgroundColor={customColors.border}
           >
             <View style={styles.calorieCircleContent}>
-              <Text style={[styles.calorieNumber, { color: theme.colors.text }]}>{totalCalories}</Text>
-              <Text style={[styles.calorieLabel, { color: theme.colors.text }]}>consumed</Text>
+              <Text style={[styles.calorieNumber, { color: customColors.text }]}>{totalCalories}</Text>
+              <Text style={[styles.calorieLabel, { color: customColors.text }]}>consumed</Text>
             </View>
           </ProgressCircle>
           <View style={styles.calorieInfo}>
-            <Text style={[styles.goalText, { color: theme.colors.text }]}>Goal: {goalCalories}</Text>
-            <Text style={[styles.remainingText, { color: theme.colors.text }]}>
+            <Text style={[styles.goalText, { color: customColors.text }]}>Goal: {goalCalories}</Text>
+            <Text style={[styles.remainingText, { color: customColors.text }]}>
               Remaining: {remainingCalories}
             </Text>
           </View>
@@ -332,9 +326,9 @@ const HomeScreen = () => {
 
         <Card style={styles.mealsCard}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Today's Meals</Text>
+            <Text style={[styles.sectionTitle, { color: customColors.text }]}>Today's Meals</Text>
             <TouchableOpacity
-              style={[styles.addMealButton, { backgroundColor: theme.colors.primary }]}
+              style={[styles.addMealButton, { backgroundColor: customColors.primary }]}
               onPress={() => setModalVisible(true)}
             >
               <Ionicons name="add" size={24} color="white" />
@@ -342,20 +336,20 @@ const HomeScreen = () => {
             </TouchableOpacity>
           </View>
           {!todaysMeals ? (
-            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <ActivityIndicator size="large" color={customColors.primary} />
           ) : todaysMeals.length === 0 ? (
-            <Text style={[styles.emptyText, { color: theme.colors.text }]}>No meals logged today</Text>
+            <Text style={[styles.emptyText, { color: customColors.text }]}>No meals logged today</Text>
           ) : (
             todaysMeals.map((meal, index) => (
               <View key={meal._id || index} style={styles.mealItem}>
                 <View>
-                  <Text style={[styles.mealName, { color: theme.colors.text }]}>{meal.name || 'Unnamed Meal'}</Text>
-                  <Text style={[styles.mealType, { color: theme.colors.text }]}>{meal.type ? meal.type.charAt(0).toUpperCase() + meal.type.slice(1) : 'Other'}</Text>
+                  <Text style={[styles.mealName, { color: customColors.text }]}>{meal.name || 'Unnamed Meal'}</Text>
+                  <Text style={[styles.mealType, { color: customColors.text }]}>{meal.type ? meal.type.charAt(0).toUpperCase() + meal.type.slice(1) : 'Other'}</Text>
                 </View>
                 <View style={styles.mealRight}>
-                  <Text style={[styles.mealCalories, { color: theme.colors.text }]}>{meal.calories || 0} cal</Text>
+                  <Text style={[styles.mealCalories, { color: customColors.text }]}>{meal.calories || 0} cal</Text>
                   <TouchableOpacity style={styles.deleteButton} onPress={() => deleteMeal(meal._id)}>
-                    <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+                    <Ionicons name="trash-outline" size={20} color={customColors.error} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -370,11 +364,11 @@ const HomeScreen = () => {
           onRequestClose={() => setModalVisible(false)}
         >
           <View style={styles.modalContainer}>
-            <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
-              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Add New Meal</Text>
+            <View style={[styles.modalContent, { backgroundColor: customColors.card }]}>
+              <Text style={[styles.modalTitle, { color: customColors.text }]}>Add New Meal</Text>
               
               <TextInput
-                style={[styles.input, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
+                style={[styles.input, { backgroundColor: customColors.background, color: customColors.text, borderColor: customColors.border }]}
                 placeholder="Meal Name"
                 placeholderTextColor="#8E8E93"
                 value={newMeal.name}
@@ -387,21 +381,21 @@ const HomeScreen = () => {
               />
               
               {showSuggestions && (
-                <View style={{ backgroundColor: theme.colors.card, borderRadius: 8, maxHeight: 120, marginBottom: 8 }}>
+                <View style={{ backgroundColor: customColors.card, borderRadius: 8, maxHeight: 120, marginBottom: 8 }}>
                   {mealSuggestions.map(suggestion => (
                     <TouchableOpacity
                       key={suggestion.id}
-                      style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}
+                      style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: customColors.border }}
                       onPress={() => handleSuggestionSelect(suggestion)}
                     >
-                      <Text style={{ color: theme.colors.text }}>{suggestion.name}</Text>
+                      <Text style={{ color: customColors.text }}>{suggestion.name}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
               
               <TextInput
-                style={[styles.input, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
+                style={[styles.input, { backgroundColor: customColors.background, color: customColors.text, borderColor: customColors.border }]}
                 placeholder="Quantity"
                 placeholderTextColor="#8E8E93"
                 keyboardType="numeric"
@@ -427,14 +421,14 @@ const HomeScreen = () => {
               
               <View style={styles.modalButtons}>
                 <TouchableOpacity
-                  style={[styles.modalButton, styles.cancelButton, { backgroundColor: theme.colors.background }]}
+                  style={[styles.modalButton, styles.cancelButton, { backgroundColor: customColors.background }]}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={[styles.cancelButtonText, { color: theme.colors.text }]}>Cancel</Text>
+                  <Text style={[styles.cancelButtonText, { color: customColors.text }]}>Cancel</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity
-                  style={[styles.modalButton, styles.saveButton, { backgroundColor: theme.colors.primary }]}
+                  style={[styles.modalButton, styles.saveButton, { backgroundColor: customColors.primary }]}
                   onPress={addMeal}
                 >
                   <Text style={styles.saveButtonText}>Save</Text>
@@ -443,7 +437,71 @@ const HomeScreen = () => {
             </View>
           </View>
         </Modal>
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: customColors.primary }]}
+            onPress={() => navigation.navigate('Water')}
+          >
+            <Ionicons name="water" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Log Water</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: customColors.primary }]}
+            onPress={() => navigation.navigate('Meals')}
+          >
+            <Ionicons name="restaurant" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Log Meal</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: customColors.primary }]}
+            onPress={() => navigation.navigate('WeightLog')}
+          >
+            <Ionicons name="scale" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Log Weight</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Premium Features Preview */}
+        <View style={styles.premiumContainer}>
+          <Text style={[styles.sectionTitle, { color: customColors.text }]}>Premium Features</Text>
+          <View style={[styles.premiumFeaturesContainer]}>
+          {/* <ScrollView horizontal showsHorizontalScrollIndicator={false} > */}
+              <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: customColors.card }]}
+              onPress={() => navigation.navigate('WeightLog')}
+            >
+              <Ionicons name="scale" size={24} color={customColors.primary} />
+              <Text style={[styles.actionText, { color: customColors.text }]}>Log Weight</Text>
+            </TouchableOpacity>
+                <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+              onPress={() => navigation.navigate('Water')}
+            >
+              <Ionicons name="water" size={24} color={customColors.primary} />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>Water Tracker</Text>
+            </TouchableOpacity>
+                <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+              onPress={() => navigation.navigate('MealSuggestions')}
+            >
+              <Ionicons name="bulb-outline" size={24} color={customColors.primary} />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>Custom Meal Suggestions</Text>
+            </TouchableOpacity>
+                <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+              onPress={() => navigation.navigate('Random')}
+            >
+              <Ionicons name="person" size={24} color={customColors.primary} />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>Personal ChatBot</Text>
+            </TouchableOpacity>
+          {/* </ScrollView> */}
+          </View>
+        </View>
       </ScrollView>
+      
     </SafeAreaView>
   );
 };
@@ -453,6 +511,32 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     paddingTop: 24,
+  },
+  actionCard: {
+    width: (width - 60) / 2,
+    height: 100,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    margin: 10
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  premiumFeaturesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap'
   },
   loadingContainer: {
     flex: 1,
@@ -693,6 +777,14 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     fontWeight: '500',
+  },
+  premiumFeatureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 10,
+    marginRight: 12,
+    minWidth: 200,
   },
 });
 

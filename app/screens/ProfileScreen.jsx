@@ -8,8 +8,32 @@ import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const ProfileScreen = ({ navigation }) => {
   const { theme } = useTheme();
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const { user, signOut, updateUserProfile } = useAuth();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingProfile, setEditingProfile] = useState(null);
@@ -151,11 +175,11 @@ const ProfileScreen = ({ navigation }) => {
 
   const renderSection = (title, fields) => (
     <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: customColors.text }]}>{title}</Text>
       {fields.map(({ label, value }) => (
         <View key={label} style={styles.field}>
-          <Text style={[styles.label, { color: theme.colors.text }]}>{label}</Text>
-          <Text style={[styles.value, { color: theme.colors.text }]}>{value}</Text>
+          <Text style={[styles.label, { color: customColors.text }]}>{label}</Text>
+          <Text style={[styles.value, { color: customColors.text }]}>{value}</Text>
         </View>
       ))}
     </View>
@@ -163,38 +187,38 @@ const ProfileScreen = ({ navigation }) => {
 
   const renderQuickActions = () => (
     <View style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Actions</Text>
+      <Text style={[styles.sectionTitle, { color: customColors.text }]}>Quick Actions</Text>
       <View style={styles.actionGrid}>
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('NutritionSearch')}
         >
-          <Ionicons name="search" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Nutrition Search</Text>
+          <Ionicons name="search" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Nutrition Search</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('Reminders')}
         >
-          <Ionicons name="notifications" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Reminders</Text>
+          <Ionicons name="notifications" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Reminders</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('WeightLog')}
         >
-          <Ionicons name="scale" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Log Weight</Text>
+          <Ionicons name="scale" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Log Weight</Text>
         </TouchableOpacity>
         
         <TouchableOpacity
-          style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+          style={[styles.actionCard, { backgroundColor: customColors.card }]}
           onPress={() => navigation.navigate('Settings')}
         >
-          <Ionicons name="settings" size={24} color={theme.colors.primary} />
-          <Text style={[styles.actionText, { color: theme.colors.text }]}>Settings</Text>
+          <Ionicons name="settings" size={24} color={customColors.primary} />
+          <Text style={[styles.actionText, { color: customColors.text }]}>Settings</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -209,23 +233,23 @@ const ProfileScreen = ({ navigation }) => {
     >
       <View style={[styles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
         <ScrollView style={styles.modalScrollView}>
-          <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Edit Profile</Text>
+          <View style={[styles.modalContent, { backgroundColor: customColors.background }]}>
+            <Text style={[styles.modalTitle, { color: customColors.text }]}>Edit Profile</Text>
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Name</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Name</Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: theme.colors.card,
-                color: theme.colors.text,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                color: customColors.text,
+                borderColor: customColors.border
               }]}
               value={editingProfile?.name}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, name: text })}
               placeholder="Enter your name"
-              placeholderTextColor={theme.colors.text + '80'}
+              placeholderTextColor={customColors.text + '80'}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Age</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Age</Text>
             <TextInput
               style={[styles.input, { 
                 backgroundColor: theme.colors.card,

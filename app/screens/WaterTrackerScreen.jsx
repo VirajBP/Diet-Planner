@@ -22,6 +22,28 @@ import { mongodbService } from '../services/mongodb.service';
 const WATER_GOAL = 2000; // 2L per day
 const GLASS_SIZE = 250; // 250ml per glass
 
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const WaterTrackerScreen = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -34,6 +56,8 @@ const WaterTrackerScreen = () => {
   const [todayTotal, setTodayTotal] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(WATER_GOAL);
   const [monthlyLogs, setMonthlyLogs] = useState([]);
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   useEffect(() => {
     loadWaterLogs();
@@ -124,7 +148,7 @@ const WaterTrackerScreen = () => {
   };
 
   const renderWaterLog = (log, index) => (
-    <Text key={index} style={[styles.logEntry, { color: theme.colors.text }]}>
+    <Text key={index} style={[styles.logEntry, { color: customColors.text }]}>
       {`${log.amount}ml at ${formatTime(log.createdAt)}`}
     </Text>
   );
@@ -133,14 +157,14 @@ const WaterTrackerScreen = () => {
     if (!user?.isPremium) {
       return (
         <TouchableOpacity
-          style={[styles.premiumCard, { backgroundColor: theme.colors.primary + '20' }]}
+          style={[styles.premiumCard, { backgroundColor: customColors.primary + '20' }]}
           onPress={() => navigation.navigate('Premium')}
         >
-          <Ionicons name="star" size={32} color={theme.colors.primary} />
-          <Text style={[styles.premiumTitle, { color: theme.colors.text }]}>
+          <Ionicons name="star" size={32} color={customColors.primary} />
+          <Text style={[styles.premiumTitle, { color: customColors.text }]}>
             Upgrade to Premium
           </Text>
-          <Text style={[styles.premiumText, { color: theme.colors.text }]}>
+          <Text style={[styles.premiumText, { color: customColors.text }]}>
             Get access to custom glass sizes, monthly projections, and detailed analytics!
           </Text>
         </TouchableOpacity>
@@ -149,16 +173,8 @@ const WaterTrackerScreen = () => {
 
     return (
       <>
-        <TouchableOpacity
-          style={[styles.customizeButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => setShowGlassSizeModal(true)}
-        >
-          <Ionicons name="options-outline" size={24} color="white" />
-          <Text style={styles.customizeButtonText}>Customize Glass Size</Text>
-        </TouchableOpacity>
-
         <View style={styles.projectionCard}>
-          <Text style={[styles.projectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.projectionTitle, { color: customColors.text }]}>
             Today's Water Intake
           </Text>
           {/* Add your monthly projection chart/graph here */}
@@ -187,22 +203,37 @@ const WaterTrackerScreen = () => {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.text }]}>Water Tracker</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={customColors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: customColors.text }]}>Water Tracker</Text>
       </View>
 
       <ScrollView style={styles.content}>
-        <View style={[styles.statsCard, { backgroundColor: theme.colors.card }]}>
-          <Text style={[styles.statsTitle, { color: theme.colors.text }]}>
-            Today's Water Intake
-          </Text>
-          <Text style={[styles.statsValue, { color: theme.colors.primary }]}>
-            {todayTotal}ml
-          </Text>
-          <Text style={[styles.statsSubtext, { color: theme.colors.text }]}>
-            Goal: {dailyGoal}ml
-          </Text>
+        <View style={styles.addWaterSection}>
+          <TouchableOpacity
+            style={[styles.waterActionButton, styles.addGlassButton, { backgroundColor: customColors.primary }]}
+            onPress={addWaterLog}
+          >
+            <Ionicons name="add" size={20} color="white" />
+            <Text style={styles.waterActionButtonText}>Add Glass</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.waterActionButton, styles.removeGlassButton, { backgroundColor: customColors.error }]}
+            onPress={removeLastGlass}
+          >
+            <Ionicons name="remove" size={20} color="white" />
+            <Text style={styles.waterActionButtonText}>Remove Glass</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.waterActionButton, styles.customizeGlassButton, { backgroundColor: customColors.card, borderColor: customColors.primary, borderWidth: 1 }]}
+            onPress={() => setShowGlassSizeModal(true)}
+          >
+            <Ionicons name="options-outline" size={20} color={customColors.primary} />
+            <Text style={[styles.waterActionButtonText, { color: customColors.primary }]}>Customize</Text>
+          </TouchableOpacity>
         </View>
 
         {renderPremiumFeatures()}
@@ -212,30 +243,88 @@ const WaterTrackerScreen = () => {
             value={Math.min((todayTotal / dailyGoal) * 100, 100)}
             radius={80}
             duration={1000}
-            progressValueColor={theme.colors.text}
+            progressValueColor={customColors.text}
             maxValue={100}
             title={`${todayTotal}ml / ${dailyGoal}ml`}
-            titleColor={theme.colors.text}
+            titleColor={customColors.text}
             titleStyle={{ fontSize: 14 }}
-            activeStrokeColor={theme.colors.primary}
-            inActiveStrokeColor={theme.colors.border}
+            activeStrokeColor={customColors.primary}
+            inActiveStrokeColor={customColors.border}
           />
         </View>
 
-        {user?.isPremium && monthlyLogs.length > 0 && (
+        <Modal
+          visible={showGlassSizeModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowGlassSizeModal(false)}
+        >
+          <View style={[styles.modalContainer, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
+            <View style={[styles.modalContent, { 
+              backgroundColor: isDark ? '#1A1A1A' : customColors.surface,
+              borderColor: customColors.border,
+              borderWidth: 1,
+            }]}>
+              <Text style={[styles.modalTitle, { color: customColors.text }]}>
+                Customize Glass Size
+              </Text>
+              <TextInput
+                style={[styles.input, { 
+                  backgroundColor: isDark ? '#2C2C2E' : customColors.background,
+                  color: customColors.text,
+                  borderColor: customColors.border,
+                  borderRadius: 8,
+                  marginBottom: 20,
+                }]}
+                value={customGlassSize.toString()}
+                onChangeText={(text) => setCustomGlassSize(parseInt(text) || 0)}
+                keyboardType="numeric"
+                placeholder="Enter glass size in ml"
+                placeholderTextColor={customColors.text + '80'}
+              />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, { 
+                    backgroundColor: isDark ? '#2C2C2E' : customColors.surface,
+                    borderColor: customColors.border,
+                    borderWidth: 1,
+                    marginRight: 8,
+                  }]}
+                  onPress={() => setShowGlassSizeModal(false)}
+                >
+                  <Text style={[styles.modalButtonText, { color: customColors.text }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, { 
+                    backgroundColor: customColors.primary,
+                    marginLeft: 8,
+                  }]}
+                  onPress={() => {
+                    setGlassSize(customGlassSize);
+                    setShowGlassSizeModal(false);
+                  }}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        
+        {monthlyLogs.length > 0 && (
           <Card style={styles.logsCard}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Monthly Water Intake</Text>
+            <Text style={[styles.sectionTitle, { color: customColors.text }]}>Monthly Water Intake</Text>
             <LineChart
               data={getMonthlyChartData()}
               width={320}
               height={180}
               chartConfig={{
-                backgroundColor: theme.colors.card,
-                backgroundGradientFrom: theme.colors.card,
-                backgroundGradientTo: theme.colors.card,
+                backgroundColor: customColors.card,
+                backgroundGradientFrom: customColors.card,
+                backgroundGradientTo: customColors.card,
                 decimalPlaces: 0,
-                color: (opacity = 1) => theme.colors.primary + Math.round(opacity * 255).toString(16),
-                labelColor: () => theme.colors.text,
+                color: (opacity = 1) => customColors.primary + Math.round(opacity * 255).toString(16),
+                labelColor: () => customColors.text,
                 style: { borderRadius: 16 },
               }}
               bezier
@@ -245,84 +334,18 @@ const WaterTrackerScreen = () => {
         )}
 
         <Card style={styles.logsCard}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.sectionTitle, { color: customColors.text }]}>
             Today's Logs
           </Text>
           {waterLogs.length > 0 ? (
             waterLogs.map(renderWaterLog)
           ) : (
-            <Text style={[styles.emptyText, { color: theme.colors.text }]}>
+            <Text style={[styles.emptyText, { color: customColors.text }]}>
               No water logged today
             </Text>
           )}
         </Card>
       </ScrollView>
-
-      <Modal
-        visible={showGlassSizeModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowGlassSizeModal(false)}
-      >
-        <View style={[styles.modalContainer, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <View style={[styles.modalContent, { 
-            backgroundColor: theme.dark ? '#1A1A1A' : theme.colors.surface,
-            borderColor: theme.colors.border,
-            borderWidth: 1,
-          }]}>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-              Customize Glass Size
-            </Text>
-            <TextInput
-              style={[styles.input, { 
-                backgroundColor: theme.dark ? '#2C2C2E' : theme.colors.background,
-                color: theme.colors.text,
-                borderColor: theme.colors.border,
-                borderRadius: 8,
-                marginBottom: 20,
-              }]}
-              value={customGlassSize.toString()}
-              onChangeText={(text) => setCustomGlassSize(parseInt(text) || 0)}
-              keyboardType="numeric"
-              placeholder="Enter glass size in ml"
-              placeholderTextColor={theme.colors.text + '80'}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, { 
-                  backgroundColor: theme.dark ? '#2C2C2E' : theme.colors.surface,
-                  borderColor: theme.colors.border,
-                  borderWidth: 1,
-                  marginRight: 8,
-                }]}
-                onPress={() => setShowGlassSizeModal(false)}
-              >
-                <Text style={[styles.modalButtonText, { color: theme.colors.text }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, { 
-                  backgroundColor: theme.colors.primary,
-                  marginLeft: 8,
-                }]}
-                onPress={() => {
-                  setGlassSize(customGlassSize);
-                  setShowGlassSizeModal(false);
-                }}
-              >
-                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
-        onPress={addWaterLog}
-      >
-        <Ionicons name="add" size={24} color="white" />
-        <Text style={styles.addButtonText}>Add Water ({glassSize}ml)</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -337,6 +360,10 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 16,
   },
   title: {
     fontSize: 24,
@@ -446,17 +473,30 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
   },
-  addButton: {
-    padding: 16,
-    borderRadius: 8,
+  addWaterSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 12,
+  },
+  waterActionButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginHorizontal: 4,
   },
-  addButtonText: {
+  addGlassButton: {},
+  removeGlassButton: {},
+  customizeGlassButton: {},
+  waterActionButtonText: {
     color: 'white',
+    marginLeft: 8,
+    fontWeight: 'bold',
     fontSize: 16,
-    fontWeight: '600',
   },
   modalContainer: {
     flex: 1,

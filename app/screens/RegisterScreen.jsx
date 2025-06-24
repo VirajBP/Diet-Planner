@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '../components/ui/Picker';
@@ -34,6 +34,16 @@ const RegisterScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const { theme } = useTheme();
   const { signUp } = useAuth();
+  const isDark = theme.dark;
+  const customColors = isDark ? {
+    primary: '#27AE60',
+    card: '#1E1E1E',
+    text: '#FAFAFA',
+  } : {
+    primary: '#2ECC71',
+    card: '#FFFFFF',
+    text: '#1C1C1C',
+  };
 
   const activityLevels = [
     { label: 'Sedentary (Little/No Exercise)', value: 'sedentary' },
@@ -152,12 +162,12 @@ const RegisterScreen = ({ navigation }) => {
   const renderInput = (placeholder, field, keyboardType = 'default', secureTextEntry = false) => (
     <TextInput
       style={[styles.input, { 
-        backgroundColor: theme.colors.card,
-        color: theme.colors.text,
-        borderColor: theme.colors.border
+        backgroundColor: customColors.card,
+        color: customColors.text,
+        borderColor: customColors.border
       }]}
       placeholder={placeholder}
-      placeholderTextColor={theme.colors.text}
+      placeholderTextColor={customColors.text}
       value={formData[field]}
       onChangeText={(value) => handleInputChange(field, value)}
       keyboardType={keyboardType}
@@ -167,7 +177,7 @@ const RegisterScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.card }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -176,10 +186,10 @@ const RegisterScreen = ({ navigation }) => {
           <View style={styles.content}>
             <Image
               source={require('../assets/logo.png')}
-              style={[styles.logo, { tintColor: theme.colors.text }]}
+              style={[styles.logo, { tintColor: customColors.text }]}
               resizeMode="contain"
             />
-            <Text style={[styles.title, { color: theme.colors.text }]}>Create Account</Text>
+            <Text style={[styles.title, { color: customColors.text }]}>Create Account</Text>
             
             {renderInput('Email', 'email', 'email-address')}
             {renderInput('Password', 'password', 'default', true)}
@@ -191,7 +201,7 @@ const RegisterScreen = ({ navigation }) => {
             {renderInput('Target Weight (kg)', 'targetWeight', 'numeric')}
 
             <View style={styles.pickerContainer}>
-              <Text style={[styles.label, { color: theme.colors.text }]}>Gender</Text>
+              <Text style={[styles.label, { color: customColors.text }]}>Gender</Text>
               <Picker
                 selectedValue={formData.gender}
                 onValueChange={(value) => handleInputChange('gender', value)}
@@ -200,7 +210,7 @@ const RegisterScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.pickerContainer}>
-              <Text style={[styles.label, { color: theme.colors.text }]}>Activity Level</Text>
+              <Text style={[styles.label, { color: customColors.text }]}>Activity Level</Text>
               <Picker
                 selectedValue={formData.activityLevel}
                 onValueChange={(value) => handleInputChange('activityLevel', value)}
@@ -209,7 +219,7 @@ const RegisterScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.pickerContainer}>
-              <Text style={[styles.label, { color: theme.colors.text }]}>Goal</Text>
+              <Text style={[styles.label, { color: customColors.text }]}>Goal</Text>
               <Picker
                 selectedValue={formData.goal}
                 onValueChange={(value) => handleInputChange('goal', value)}
@@ -218,7 +228,7 @@ const RegisterScreen = ({ navigation }) => {
             </View>
 
             <View style={styles.pickerContainer}>
-              <Text style={[styles.label, { color: theme.colors.text }]}>Dietary Restrictions</Text>
+              <Text style={[styles.label, { color: customColors.text }]}>Dietary Restrictions</Text>
               <Picker
                 selectedValue={formData.dietaryRestrictions}
                 onValueChange={(value) => handleInputChange('dietaryRestrictions', value)}
@@ -228,7 +238,7 @@ const RegisterScreen = ({ navigation }) => {
             </View>
 
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: theme.colors.primary }]}
+              style={[styles.button, { backgroundColor: customColors.primary }]}
               onPress={handleRegister}
               disabled={loading}
             >
@@ -241,7 +251,7 @@ const RegisterScreen = ({ navigation }) => {
               style={styles.linkButton}
               onPress={() => navigation.navigate('Login')}
             >
-              <Text style={[styles.linkText, { color: theme.colors.primary }]}>
+              <Text style={[styles.linkText, { color: customColors.primary }]}>
                 Already have an account? Login
               </Text>
             </TouchableOpacity>

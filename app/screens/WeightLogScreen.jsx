@@ -2,19 +2,41 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
+
+// Fresh & Calm (Mint Theme)
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
 
 const WeightLogScreen = () => {
   const { theme } = useTheme();
@@ -27,6 +49,12 @@ const WeightLogScreen = () => {
   const [showCustomIngredients, setShowCustomIngredients] = useState(false);
   const [customIngredients, setCustomIngredients] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [bmiWeight, setBmiWeight] = useState('');
+  const [bmiHeight, setBmiHeight] = useState('');
+  const [bmiResult, setBmiResult] = useState(null);
+  const [weightGoal, setWeightGoal] = useState(user?.profile?.targetWeight?.toString() || '');
+  const isDark = theme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   useEffect(() => {
     loadWeightLogs();
@@ -91,6 +119,7 @@ const WeightLogScreen = () => {
       await mongodbService.deleteWeightLog(logId);
       await loadWeightLogs();
     } catch (error) {
+      console.log(logId)
       console.error('Error deleting weight log:', error);
       Alert.alert('Error', error.message);
     } finally {
@@ -127,58 +156,112 @@ const WeightLogScreen = () => {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDateTime = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
+    }) + ' ' + date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
     });
   };
 
   const renderPremiumFeature = (title) => (
     <TouchableOpacity
-      style={[styles.premiumFeature, { backgroundColor: theme.colors.card }]}
+      style={[styles.premiumFeature, { backgroundColor: customColors.card }]}
       onPress={showPremiumPrompt}
     >
-      <Ionicons name="lock-closed" size={20} color={theme.colors.text} />
-      <Text style={[styles.premiumText, { color: theme.colors.text }]}>{title}</Text>
+      <Ionicons name="lock-closed" size={20} color={customColors.text} />
+      <Text style={[styles.premiumText, { color: customColors.text }]}>{title}</Text>
     </TouchableOpacity>
   );
 
   const getChartData = () => {
     const sortedLogs = [...weightLogs].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     return {
-      labels: sortedLogs.slice(-7).map(log => formatDate(log.createdAt).split(',')[0]),
+      labels: sortedLogs.slice(-7).map(log => formatDateTime(log.createdAt).split(',')[0]),
       datasets: [{
         data: sortedLogs.slice(-7).map(log => log.weight)
       }]
     };
   };
 
+  const calculateBMI = () => {
+    const weight = parseFloat(bmiWeight);
+    const height = parseFloat(bmiHeight);
+    if (!weight || !height || height <= 0) {
+      Alert.alert('Error', 'Please enter valid weight and height');
+      return;
+    }
+    const heightM = height / 100;
+    const bmi = weight / (heightM * heightM);
+    setBmiResult(bmi.toFixed(1));
+  };
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={customColors.text} />
+        </TouchableOpacity>
+        <Text style={styles.heading}>Weight Tracker</Text>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Weight Tracker</Text>
-          {!user?.isPremium && (
-            <Text style={[styles.premiumNote, { color: theme.colors.text }]}>
-              ⭐ Upgrade to Premium to track your weight progress
-            </Text>
+        {/* BMI Calculator Section */}
+        <View style={[styles.bmiContainer, { backgroundColor: customColors.card }]}> 
+          <Text style={[styles.bmiTitle, { color: customColors.text }]}>BMI Calculator</Text>
+          <View style={styles.bmiInputsRow}>
+            <TextInput
+              style={[styles.input, { color: customColors.text, borderColor: customColors.border, flex: 1 }]}
+              placeholder="Weight (kg)"
+              placeholderTextColor={customColors.text + '80'}
+              keyboardType="numeric"
+              value={bmiWeight}
+              onChangeText={setBmiWeight}
+            />
+            <TextInput
+              style={[styles.input, { color: customColors.text, borderColor: customColors.border, flex: 1, marginLeft: 8 }]}
+              placeholder="Height (cm)"
+              placeholderTextColor={customColors.text + '80'}
+              keyboardType="numeric"
+              value={bmiHeight}
+              onChangeText={setBmiHeight}
+            />
+            <TouchableOpacity style={[styles.addButton, { backgroundColor: customColors.primary, marginLeft: 8 }]} onPress={calculateBMI}>
+              <Text style={styles.buttonText}>Calculate</Text>
+            </TouchableOpacity>
+          </View>
+          {bmiResult && (
+            <Text style={{ color: customColors.text, fontWeight: 'bold', marginTop: 8 }}>BMI: {bmiResult}</Text>
           )}
         </View>
-
-        <View style={[styles.inputContainer, { backgroundColor: theme.colors.card }]}>
+        {/* Set Weight Goal Section (Free) */}
+        {/* <View style={[styles.bmiContainer, { backgroundColor: theme.colors.card }]}> 
+          <Text style={[styles.bmiTitle, { color: theme.colors.text }]}>Set Weight Goal</Text>
           <TextInput
-            style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border }]}
-            placeholder="Enter weight in kg"
+            style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border, flex: 1 }]}
+            placeholder="Target Weight (kg)"
             placeholderTextColor={theme.colors.text + '80'}
+            keyboardType="numeric"
+            value={weightGoal}
+            onChangeText={setWeightGoal}
+          />
+        </View> */}
+
+        <View style={[styles.inputContainer, { backgroundColor: customColors.card }]}>
+          <TextInput
+            style={[styles.input, { color: customColors.text, borderColor: customColors.border }]}
+            placeholder="Enter weight in kg"
+            placeholderTextColor={customColors.text + '80'}
             keyboardType="numeric"
             value={newWeight}
             onChangeText={setNewWeight}
           />
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.addButton, { backgroundColor: customColors.primary }]}
             onPress={addWeightLog}
             disabled={loading}
           >
@@ -186,109 +269,133 @@ const WeightLogScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Premium Features */}
-        <View style={styles.premiumContainer}>
-          {renderPremiumFeature('Set Weight Goal')}
-          {renderPremiumFeature('BMI Calculator')}
-          {renderPremiumFeature('Progress Photos')}
+        {/* Weight Chart (Premium Preview) */}
+        {user?.isPremium ? (
+          weightLogs.length > 0 && (
+            <View style={[styles.chartContainer, { backgroundColor: customColors.card }]}> 
+              <LineChart
+                data={getChartData()}
+                width={320}
+                height={180}
+                chartConfig={{
+                  backgroundColor: customColors.card,
+                  backgroundGradientFrom: customColors.card,
+                  backgroundGradientTo: customColors.card,
+                  decimalPlaces: 1,
+                  color: (opacity = 1) => `rgba(255, 155, 113, ${opacity})`,
+                  labelColor: () => customColors.text,
+                  style: {
+                    borderRadius: 16,
+                  },
+                }}
+                bezier
+                style={{
+                  marginVertical: 8,
+                  borderRadius: 16,
+                }}
+              />
+            </View>
+          )
+        ) : (
+          <TouchableOpacity
+            style={[styles.chartContainer, { backgroundColor: customColors.card }]}
+            onPress={() => Alert.alert('Premium Feature', 'Upgrade to premium to access detailed charts!')}
+          >
+            <View style={styles.chartOverlay}>
+              <Ionicons name="lock-closed" size={40} color={customColors.text} />
+              <Text style={[styles.chartOverlayText, { color: customColors.text }]}>Unlock Premium for Detailed Charts</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
+        <View style={{ marginVertical: 16, alignItems: 'center' }}>
+          <TouchableOpacity
+            style={{
+              backgroundColor: customColors.primary,
+              paddingVertical: 12,
+              paddingHorizontal: 24,
+              borderRadius: 24,
+              alignItems: 'center',
+              flexDirection: 'row',
+              gap: 8,
+            }}
+            onPress={() => navigation.navigate('CalorieCalculator', {
+              autofill: true,
+              profile: user?.profile || user
+            })}
+          >
+            <Ionicons name="calculator" size={20} color="white" />
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Go to Calorie Calculator</Text>
+          </TouchableOpacity>
+          <Text style={{ color: customColors.text, marginTop: 8, fontStyle: 'italic', fontSize: 13 }}>
+            You can calculate your daily calories. Your profile data will be autofilled.
+          </Text>
         </View>
 
-        {/* Weight Chart (Premium Preview) */}
-        <TouchableOpacity
-          style={[styles.chartContainer, { backgroundColor: theme.colors.card }]}
-          onPress={() => Alert.alert('Premium Feature', 'Upgrade to premium to access detailed charts!')}
-        >
-          <View style={styles.chartOverlay}>
-            <Ionicons name="lock-closed" size={40} color={theme.colors.text} />
-            <Text style={[styles.chartOverlayText, { color: theme.colors.text }]}>
-              Unlock Premium for Detailed Charts
-            </Text>
-          </View>
-          {weightLogs.length > 0 && (
-            <LineChart
-              data={getChartData()}
-              width={320}
-              height={180}
-              chartConfig={{
-                backgroundColor: theme.colors.card,
-                backgroundGradientFrom: theme.colors.card,
-                backgroundGradientTo: theme.colors.card,
-                decimalPlaces: 1,
-                color: (opacity = 1) => theme.colors.primary + opacity * 255,
-                labelColor: () => theme.colors.text,
-                style: {
-                  borderRadius: 16,
-                },
-              }}
-              bezier
-              style={{
-                marginVertical: 8,
-                borderRadius: 16,
-                opacity: 0.5,
-              }}
-            />
-          )}
-        </TouchableOpacity>
-
-        <View style={[styles.logsContainer, { backgroundColor: theme.colors.card }]}>
-          <Text style={[styles.logsTitle, { color: theme.colors.text }]}>Weight History</Text>
+        <View style={[styles.logsContainer, { backgroundColor: customColors.card }]}>
+          <Text style={[styles.logsTitle, { color: customColors.text }]}>Weight History</Text>
           <ScrollView style={styles.logsList}>
             {user?.isPremium ? (
               weightLogs.length > 0 ? (
                 weightLogs.map((log, index) => (
                   <View
                     key={index}
-                    style={[styles.logEntry, { borderBottomColor: theme.colors.border }]}
+                    style={[styles.logEntry, { borderBottomColor: customColors.border }]}
                   >
-                    <Text style={[styles.logWeight, { color: theme.colors.text }]}>
-                      {log.weight} kg
-                    </Text>
-                    <Text style={[styles.logDate, { color: theme.colors.text + '80' }]}>
-                      {formatDate(log.createdAt)}
-                    </Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.logWeight, { color: customColors.text }]}> {log.weight} kg </Text>
+                      <Text style={[styles.logDate, { color: customColors.text + '80' }]}> {formatDateTime(log.createdAt)} </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => {
+                        Alert.alert(
+                          'Delete Log',
+                          'Are you sure you want to delete this weight log?',
+                          [
+                            { text: 'Cancel', style: 'cancel' },
+                            {
+                              text: 'Delete',
+                              style: 'destructive',
+                              onPress: () => deleteWeightLog(log._id)
+                            }
+                          ]
+                        );
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={20} color={customColors.error} />
+                    </TouchableOpacity>
                   </View>
                 ))
               ) : (
-                <Text style={[styles.emptyText, { color: theme.colors.text }]}>
-                  No weight logs yet
-                </Text>
+                <Text style={[styles.emptyText, { color: customColors.text }]}> No weight logs yet </Text>
               )
             ) : (
-              <Text style={[styles.emptyText, { color: theme.colors.text }]}>
-                Upgrade to premium to view weight history
-              </Text>
+              <Text style={[styles.emptyText, { color: customColors.text }]}> Upgrade to premium to view weight history </Text>
             )}
           </ScrollView>
         </View>
 
-        <TouchableOpacity
-          style={[styles.toggleButton, { backgroundColor: theme.colors.primary }]}
-          onPress={() => setShowCustomIngredients(!showCustomIngredients)}
-        >
-          <Text style={styles.buttonText}>
-            {showCustomIngredients ? 'Hide Custom Ingredients' : 'Show Custom Ingredients'}
-          </Text>
-        </TouchableOpacity>
 
         {showCustomIngredients && (
-          <View style={[styles.customIngredientsContainer, { backgroundColor: theme.colors.card }]}>
-            <Text style={[styles.subtitle, { color: theme.colors.text }]}>
+          <View style={[styles.customIngredientsContainer, { backgroundColor: customColors.card }]}>
+            <Text style={[styles.subtitle, { color: customColors.text }]}>
               Custom Ingredients (Premium)
             </Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: theme.colors.inputBackground,
-                color: theme.colors.text,
-                borderColor: theme.colors.border,
+                backgroundColor: customColors.inputBackground,
+                color: customColors.text,
+                borderColor: customColors.border,
               }]}
               value={customIngredients}
               onChangeText={setCustomIngredients}
               placeholder="Enter ingredients (comma-separated)"
-              placeholderTextColor={theme.colors.text}
+              placeholderTextColor={customColors.text}
               multiline
             />
             <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
+              style={[styles.addButton, { backgroundColor: customColors.primary }]}
               onPress={handleGetSuggestions}
             >
               <Text style={styles.buttonText}>Get Suggestions</Text>
@@ -296,18 +403,18 @@ const WeightLogScreen = () => {
 
             {suggestions.length > 0 && (
               <View style={styles.suggestionsContainer}>
-                <Text style={[styles.subtitle, { color: theme.colors.text }]}>
+                <Text style={[styles.subtitle, { color: customColors.text }]}>
                   Suggested Meals
                 </Text>
                 {suggestions.map((suggestion, index) => (
                   <View
                     key={index}
-                    style={[styles.suggestionItem, { backgroundColor: theme.colors.inputBackground }]}
+                    style={[styles.suggestionItem, { backgroundColor: customColors.inputBackground }]}
                   >
-                    <Text style={[styles.suggestionName, { color: theme.colors.text }]}>
+                    <Text style={[styles.suggestionName, { color: customColors.text }]}>
                       {suggestion.name}
                     </Text>
-                    <Text style={[styles.suggestionCalories, { color: theme.colors.primary }]}>
+                    <Text style={[styles.suggestionCalories, { color: customColors.primary }]}>
                       {suggestion.calories} calories
                     </Text>
                   </View>
@@ -464,6 +571,37 @@ const styles = StyleSheet.create({
   },
   suggestionCalories: {
     fontSize: 14,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  backButton: {
+    padding: 8,
+  },
+  heading: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 16,
+  },
+  bmiContainer: {
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  bmiTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  bmiInputsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    padding: 8,
   },
 });
 
