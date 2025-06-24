@@ -108,17 +108,24 @@ function TabNavigator() {
 
 function AuthStack() {
   const paperTheme = usePaperTheme();
-
+  const isDark = paperTheme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        headerStyle: {
+          backgroundColor: customColors.background,
+          borderBottomWidth: 1,
+          borderBottomColor: customColors.border,
+        },
+        headerTintColor: customColors.text,
         contentStyle: {
-          backgroundColor: paperTheme.colors.background
-        }
+          backgroundColor: customColors.background
+        },
       }}
     >
-      <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
@@ -128,17 +135,24 @@ function AuthStack() {
 function MainStack() {
   const paperTheme = usePaperTheme();
   const isDark = paperTheme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        contentStyle: {
-          backgroundColor: paperTheme.colors.background
+        headerStyle: {
+          backgroundColor: customColors.card,
+          borderBottomWidth: 1,
+          borderBottomColor: customColors.border,
         },
-        navigationBarColor: isDark ? FRESH_CALM_DARK.card : FRESH_CALM_LIGHT.card,
+        headerTintColor: customColors.text,
+        contentStyle: {
+          backgroundColor: customColors.background
+        },
+        navigationBarColor: customColors.card,
       }}
     >
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
+      <Stack.Screen name="MainTabs" component={TabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Premium" component={PremiumScreen} />
       <Stack.Screen name="WeightLog" component={WeightLogScreen} />
@@ -152,19 +166,26 @@ function MainStack() {
 
 function RootNavigator() {
   const paperTheme = usePaperTheme();
-
+  const isDark = paperTheme.dark;
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   return (
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
+        headerStyle: {
+          backgroundColor: customColors.card,
+          borderBottomWidth: 1,
+          borderBottomColor: customColors.border,
+        },
+        headerTintColor: customColors.text,
         contentStyle: {
-          backgroundColor: paperTheme.colors.background
-        }
+          backgroundColor: customColors.background
+        },
       }}
     >
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-      <Stack.Screen name="Auth" component={AuthStack} />
-      <Stack.Screen name="Main" component={MainStack} />
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Auth" component={AuthStack} options={{ headerShown: false }} />
+      <Stack.Screen name="Main" component={MainStack} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

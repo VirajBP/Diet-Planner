@@ -21,15 +21,27 @@ const LoginScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { signIn } = useAuth();
   const isDark = theme.dark;
-  const customColors = isDark ? {
-    primary: '#27AE60',
-    card: '#1E1E1E',
-    text: '#FAFAFA',
-  } : {
-    primary: '#2ECC71',
-    card: '#FFFFFF',
+  const FRESH_CALM_LIGHT = {
+    primary: '#2ECC71', // Mint Green
+    secondary: '#A3E4D7',
+    background: '#FDFEFE',
+    surface: '#FFFFFF',
     text: '#1C1C1C',
+    card: '#FFFFFF',
+    border: '#A3E4D7',
+    error: '#FF5252',
   };
+  const FRESH_CALM_DARK = {
+    primary: '#27AE60',
+    secondary: '#48C9B0',
+    background: '#121212',
+    surface: '#1E1E1E',
+    text: '#FAFAFA',
+    card: '#1E1E1E',
+    border: '#48C9B0',
+    error: '#FF5252',
+  };
+  const customColors = isDark ? FRESH_CALM_DARK:FRESH_CALM_LIGHT
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -97,7 +109,7 @@ const LoginScreen = ({ navigation }) => {
             onPress={handleLogin}
             disabled={loading}
           >
-            <Text style={[styles.buttonText, { color: customColors.dark ? '#000000' : '#FFFFFF' }]}>
+            <Text style={[styles.buttonText, { color: customColors.dark}]}>
               {loading ? 'Logging in...' : 'Login'}
             </Text>
           </TouchableOpacity>

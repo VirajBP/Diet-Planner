@@ -346,7 +346,7 @@ const ProfileScreen = ({ navigation }) => {
                 <Text style={[styles.modalButtonText, { color: theme.colors.text }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton, { backgroundColor: theme.colors.primary }]}
+                style={[styles.modalButton, styles.saveButton, { backgroundColor: customColors.primary }]}
                 onPress={handleSaveProfile}
                 disabled={loading}
               >
@@ -367,7 +367,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.header}>
           <Text style={[styles.title, { color: theme.colors.text }]}>Profile</Text>
           <TouchableOpacity
-            style={[styles.editButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.editButton, { backgroundColor: customColors.primary }]}
             onPress={handleEditPress}
           >
             <Ionicons name="pencil" size={16} color="white" />

@@ -1,19 +1,40 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    Image,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Button from '../components/ui/Button';
 import { useOnboarding } from '../context/OnboardingContext';
 import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
+
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
 
 const steps = [
   {
@@ -38,15 +59,7 @@ const OnboardingScreen = ({ navigation }) => {
   const { completeOnboarding } = useOnboarding();
   const { theme } = useTheme();
   const isDark = theme.dark;
-  const customColors = isDark ? {
-    primary: '#27AE60',
-    card: '#1E1E1E',
-    text: '#FAFAFA',
-  } : {
-    primary: '#2ECC71',
-    card: '#FFFFFF',
-    text: '#1C1C1C',
-  };
+  const customColors = isDark ? FRESH_CALM_DARK: FRESH_CALM_LIGHT
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {
@@ -77,7 +90,7 @@ const OnboardingScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: customColors.card }]}>
       <LinearGradient
-        colors={['#1a1a1a', '#2d2d2d']}
+        colors={isDark ? ['#1a1a1a', '#2d2d2d'] : ['#FFFFFF', '#FDFEFE']}
         style={styles.gradient}
       />
       
@@ -91,8 +104,8 @@ const OnboardingScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={styles.title}>{steps[currentStep].title}</Text>
-          <Text style={styles.description}>{steps[currentStep].description}</Text>
+          <Text style={[styles.title, { color: customColors.text }]}>{steps[currentStep].title}</Text>
+          <Text style={[styles.description, { color: isDark ? '#CCCCCC' : '#666' }]}>{steps[currentStep].description}</Text>
         </View>
 
         <View style={styles.indicators}>
@@ -101,7 +114,7 @@ const OnboardingScreen = ({ navigation }) => {
               key={index}
               style={[
                 styles.indicator,
-                index === currentStep && styles.activeIndicator,
+                { backgroundColor: index === currentStep ? customColors.primary : (isDark ? '#4A4A4A' : '#E0E0E0'), width: index === currentStep ? 20 : 8 },
               ]}
             />
           ))}
@@ -113,13 +126,15 @@ const OnboardingScreen = ({ navigation }) => {
               title="Previous"
               onPress={handlePrevious}
               type="secondary"
-              style={styles.button}
+              style={[styles.button, { backgroundColor: isDark ? '#222' : '#eee', borderColor: customColors.primary, borderWidth: 1 }]}
+              textStyle={{ color: customColors.primary }}
             />
           )}
           <Button
             title={currentStep === steps.length - 1 ? "Get Started" : "Next"}
             onPress={handleNext}
-            style={styles.button}
+            style={[styles.button, { backgroundColor: customColors.primary }]}
+            textStyle={{ color: isDark ? '#000' : '#fff' }}
           />
         </View>
 
@@ -127,7 +142,7 @@ const OnboardingScreen = ({ navigation }) => {
           style={styles.skipButton}
           onPress={handleSkip}
         >
-          <Text style={styles.skipText}>Skip</Text>
+          <Text style={[styles.skipText, { color: customColors.primary }]}>Skip</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -170,13 +185,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 16,
   },
   description: {
     fontSize: 16,
-    color: '#CCCCCC',
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -188,12 +201,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4A4A4A',
     marginHorizontal: 4,
-  },
-  activeIndicator: {
-    backgroundColor: '#FF9B71',
-    width: 20,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -210,7 +218,6 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   skipText: {
-    color: '#FF9B71',
     fontSize: 16,
     fontWeight: '600',
   },

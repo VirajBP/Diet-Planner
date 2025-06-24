@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
+// import {customColors} from ''
 import {
     ActivityIndicator,
     Alert,
@@ -17,8 +18,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
 
+
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const NutritionSearchScreen = () => {
   const { theme } = useTheme();
+  const isDark=theme.dark
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -27,7 +51,7 @@ const NutritionSearchScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [searchInfo, setSearchInfo] = useState(null);
   const navigation = useNavigation();
-
+  const customColors = isDark? FRESH_CALM_DARK:FRESH_CALM_LIGHT
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       Alert.alert('Error', 'Please enter a search term');
@@ -263,13 +287,13 @@ const NutritionSearchScreen = () => {
           onSubmitEditing={handleSearch}
         />
         <TouchableOpacity
-          style={[styles.searchButton, { backgroundColor: theme.colors.primary }]}
+          style={[styles.searchButton, { backgroundColor: customColors.primary }]}
           onPress={handleSearch}
         >
           <Ionicons name="search" size={20} color="white" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.testButton, { backgroundColor: theme.colors.card }]}
+          style={[styles.testButton, { backgroundColor: customColors.card }]}
           onPress={testAllMeals}
         >
           <Ionicons name="bug" size={20} color={theme.colors.primary} />

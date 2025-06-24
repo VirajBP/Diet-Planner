@@ -467,7 +467,7 @@ const HomeScreen = () => {
         {/* Premium Features Preview */}
         <View style={styles.premiumContainer}>
           <Text style={[styles.sectionTitle, { color: customColors.text }]}>Premium Features</Text>
-          <View style={[styles.premiumFeaturesContainer]}>
+          <View style={styles.premiumFeaturesContainer}>
           {/* <ScrollView horizontal showsHorizontalScrollIndicator={false} > */}
               <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: customColors.card }]}
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
   actionCard: {
-    width: (width - 60) / 2,
+    width: '48%',
     height: 100,
     padding: 16,
     borderRadius: 12,
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    margin: 10
+    marginBottom: 16,
   },
   actionText: {
     fontSize: 14,
@@ -532,11 +532,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   premiumFeaturesContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     flexDirection: 'row',
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   loadingContainer: {
     flex: 1,

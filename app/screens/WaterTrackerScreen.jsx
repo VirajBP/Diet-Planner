@@ -227,15 +227,15 @@ const WaterTrackerScreen = () => {
             <Ionicons name="remove" size={20} color="white" />
             <Text style={styles.waterActionButtonText}>Remove Glass</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          
+        </View>
+        <TouchableOpacity
             style={[styles.waterActionButton, styles.customizeGlassButton, { backgroundColor: customColors.card, borderColor: customColors.primary, borderWidth: 1 }]}
             onPress={() => setShowGlassSizeModal(true)}
           >
             <Ionicons name="options-outline" size={20} color={customColors.primary} />
-            <Text style={[styles.waterActionButtonText, { color: customColors.primary }]}>Customize</Text>
+            <Text style={[styles.waterActionButtonText, { color: customColors.primary }]}>Customize Glass Size</Text>
           </TouchableOpacity>
-        </View>
-
         {renderPremiumFeatures()}
 
         <View style={styles.progressContainer}>
