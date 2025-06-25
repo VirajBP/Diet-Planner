@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Alert,
   SafeAreaView,
@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import PasswordUpdateModal from '../components/PasswordUpdateModal';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -38,7 +39,8 @@ const FRESH_CALM_DARK = {
 const SettingsScreen = () => {
   const navigation = useNavigation();
   const { theme, toggleTheme, isDark } = useTheme();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
 
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
@@ -60,7 +62,7 @@ const SettingsScreen = () => {
         {
           label: 'Change Password',
           icon: 'key-outline',
-          onPress: () => Alert.alert('Coming Soon', 'This feature will be available soon!'),
+          onPress: () => setPasswordModalVisible(true),
         },
       ],
     },
@@ -113,7 +115,7 @@ const SettingsScreen = () => {
       await signOut();
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }],
+        routes: [{ name: 'Auth' }],
       });
     } catch (error) {
       console.error('Logout error:', error);
@@ -193,7 +195,7 @@ const SettingsScreen = () => {
                   <Ionicons name={item.icon} size={20} color={customColors.primary} />
                   <Text style={dynamicStyles.optionLabel}>{item.label}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color={customColors.onSurfaceDisabled} />
+                <Ionicons name="chevron-forward" size={20} color={customColors.text} />
               </TouchableOpacity>
             ))}
           </View>
@@ -203,6 +205,10 @@ const SettingsScreen = () => {
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
+      <PasswordUpdateModal
+        visible={passwordModalVisible}
+        onClose={() => setPasswordModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };

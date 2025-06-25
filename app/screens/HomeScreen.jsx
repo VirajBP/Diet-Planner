@@ -2,16 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../components/ui/Card';
@@ -75,6 +75,7 @@ const HomeScreen = () => {
   const [quote, setQuote] = useState('');
   const [todayWater, setTodayWater] = useState(0);
   const [todayCalories, setTodayCalories] = useState(0);
+  const [todaysMeals, setTodaysMeals] = useState([]);
   const navigation = useNavigation();
   const [mealSuggestions, setMealSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -145,10 +146,13 @@ const HomeScreen = () => {
     return streak;
   };
 
-  // Recalculate totals when meals change
+  // Recalculate todaysMeals and calories when meals change
   useEffect(() => {
     if (meals) {
-      const totalCals = meals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const filteredMeals = meals.filter(meal => new Date(meal.date).toISOString().split('T')[0] === todayStr);
+      setTodaysMeals(filteredMeals);
+      const totalCals = filteredMeals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
       setTodayCalories(totalCals);
     }
   }, [meals]);
@@ -273,9 +277,7 @@ const HomeScreen = () => {
     );
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todaysMeals = meals.filter(meal => meal.date === todayStr);
-  const totalCalories = todaysMeals.reduce((sum, meal) => sum + (meal.calories || 0), 0);
+  const totalCalories = todayCalories;
   const remainingCalories = goalCalories - totalCalories;
   const progress = Math.min(totalCalories / goalCalories, 1);
 

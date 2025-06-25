@@ -19,22 +19,29 @@ export const MealsProvider = ({ children }) => {
     try {
       setLoading(true);
       const mealsData = await mongodbService.getMeals();
+      
       // Flatten grouped meals array if needed
       let flatMeals = [];
       if (Array.isArray(mealsData) && mealsData.length > 0 && mealsData[0].meals) {
+        // Backend returns grouped data
         mealsData.forEach(group => {
           if (Array.isArray(group.meals)) {
             group.meals.forEach(meal => {
               flatMeals.push({
                 ...meal,
-                date: group.date
+                date: new Date(group.date).toISOString().split('T')[0] // Always store as YYYY-MM-DD
               });
             });
           }
         });
       } else {
-        flatMeals = mealsData || [];
+        // Backend returns flat array
+        flatMeals = (mealsData || []).map(meal => ({
+          ...meal,
+          date: meal.date ? new Date(meal.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        }));
       }
+      
       // Ensure proper data structure and default values
       const processedMeals = (flatMeals || []).map(meal => ({
         _id: meal.id || meal._id,
@@ -42,8 +49,9 @@ export const MealsProvider = ({ children }) => {
         type: meal.type || 'other',
         calories: typeof meal.calories === 'number' ? meal.calories : 0,
         ingredients: Array.isArray(meal.ingredients) ? meal.ingredients : [],
-        date: meal.date || new Date().toISOString().split('T')[0]
+        date: meal.date
       }));
+      
       setMeals(processedMeals);
     } catch (error) {
       console.error('Error loading meals:', error);
@@ -58,14 +66,21 @@ export const MealsProvider = ({ children }) => {
     try {
       setLoading(true);
       const newMeal = await mongodbService.createMeal(mealData);
-      setMeals(prevMeals => [...(prevMeals || []), {
+      
+      // Always store date as YYYY-MM-DD string
+      let mealDate = newMeal.date ? new Date(newMeal.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      
+      const mealToAdd = {
         _id: newMeal.id || newMeal._id,
         name: newMeal.name || 'Unnamed Meal',
         type: newMeal.type || 'other',
         calories: typeof newMeal.calories === 'number' ? newMeal.calories : 0,
         ingredients: Array.isArray(newMeal.ingredients) ? newMeal.ingredients : [],
-        date: newMeal.date || new Date().toISOString().split('T')[0]
-      }]);
+        date: mealDate
+      };
+      
+      setMeals(prevMeals => [...(prevMeals || []), mealToAdd]);
+      
       return newMeal;
     } catch (error) {
       console.error('Error adding meal:', error);

@@ -414,10 +414,10 @@ const RemindersScreen = () => {
             style={[styles.testButton, { backgroundColor: theme.colors.card }]}
             onPress={testNotification}
           >
-            <Ionicons name="notifications" size={20} color={theme.colors.primary} />
+            <Ionicons name="notifications" size={20} color={customColors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.addButton, { backgroundColor: customColors.primary }]}
             onPress={() => setShowModal(true)}
           >
             <Ionicons name="add" size={24} color="white" />

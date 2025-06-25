@@ -8,13 +8,15 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Modal
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
+import { getExpectedBMIRange } from '../utils/bmiUtils';
 
 // Fresh & Calm (Mint Theme)
 const FRESH_CALM_LIGHT = {
@@ -52,6 +54,10 @@ const WeightLogScreen = () => {
   const [bmiWeight, setBmiWeight] = useState('');
   const [bmiHeight, setBmiHeight] = useState('');
   const [bmiResult, setBmiResult] = useState(null);
+  const [bmiAge, setBmiAge] = useState(user?.profile?.age ? String(user.profile.age) : '');
+  const [bmiModalVisible, setBmiModalVisible] = useState(false);
+  const [bmiExpected, setBmiExpected] = useState(null);
+  const [bmiStatus, setBmiStatus] = useState('');
   const [weightGoal, setWeightGoal] = useState(user?.profile?.targetWeight?.toString() || '');
   const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
@@ -192,13 +198,28 @@ const WeightLogScreen = () => {
   const calculateBMI = () => {
     const weight = parseFloat(bmiWeight);
     const height = parseFloat(bmiHeight);
-    if (!weight || !height || height <= 0) {
-      Alert.alert('Error', 'Please enter valid weight and height');
+    const age = parseInt(bmiAge);
+    if (!weight || !height || height <= 0 || !age || age < 2) {
+      Alert.alert('Error', 'Please enter valid weight, height, and age');
       return;
     }
     const heightM = height / 100;
     const bmi = weight / (heightM * heightM);
     setBmiResult(bmi.toFixed(1));
+    const expected = getExpectedBMIRange(age);
+    setBmiExpected(expected);
+    let status = '';
+    if (expected.min === null) {
+      status = 'BMI is not typically used for this age.';
+    } else if (bmi < expected.min) {
+      status = 'Below expected range';
+    } else if (bmi > expected.max) {
+      status = 'Above expected range';
+    } else {
+      status = 'Within expected range';
+    }
+    setBmiStatus(status);
+    setBmiModalVisible(true);
   };
 
   return (
@@ -230,14 +251,45 @@ const WeightLogScreen = () => {
               value={bmiHeight}
               onChangeText={setBmiHeight}
             />
+            <TextInput
+              style={[styles.input, { color: customColors.text, borderColor: customColors.border, flex: 1, marginLeft: 8 }]}
+              placeholder="Age"
+              placeholderTextColor={customColors.text + '80'}
+              keyboardType="numeric"
+              value={bmiAge}
+              onChangeText={setBmiAge}
+            />
             <TouchableOpacity style={[styles.addButton, { backgroundColor: customColors.primary, marginLeft: 8 }]} onPress={calculateBMI}>
               <Text style={styles.buttonText}>Calculate</Text>
             </TouchableOpacity>
           </View>
-          {bmiResult && (
-            <Text style={{ color: customColors.text, fontWeight: 'bold', marginTop: 8 }}>BMI: {bmiResult}</Text>
-          )}
         </View>
+        <Modal
+          visible={bmiModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setBmiModalVisible(false)}
+        >
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.4)' }}>
+            <View style={{ width: '80%', borderRadius: 16, padding: 24, alignItems: 'center', backgroundColor: customColors.card, elevation: 8 }}>
+              <Text style={{ fontSize: 22, fontWeight: 'bold', color: customColors.primary, marginBottom: 16, textAlign: 'center' }}>BMI Result</Text>
+              {bmiResult && (
+                <>
+                  <Text style={{ fontSize: 18, color: customColors.text, marginBottom: 8 }}>Your BMI: <Text style={{ color: customColors.primary }}>{bmiResult}</Text></Text>
+                  {bmiExpected && bmiExpected.min !== null ? (
+                    <Text style={{ fontSize: 16, color: customColors.text, marginBottom: 8 }}>Expected BMI for age {bmiAge}: <Text style={{ color: customColors.primary }}>{bmiExpected.min} - {bmiExpected.max}</Text></Text>
+                  ) : (
+                    <Text style={{ fontSize: 16, color: customColors.text, marginBottom: 8 }}>No expected BMI range for this age.</Text>
+                  )}
+                  <Text style={{ fontSize: 16, color: customColors.text, marginBottom: 16 }}>{bmiStatus}</Text>
+                </>
+              )}
+              <TouchableOpacity style={{ marginTop: 10, paddingVertical: 10, paddingHorizontal: 32, borderRadius: 24, backgroundColor: customColors.primary }} onPress={() => setBmiModalVisible(false)}>
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
         {/* Set Weight Goal Section (Free) */}
         {/* <View style={[styles.bmiContainer, { backgroundColor: theme.colors.card }]}> 
           <Text style={[styles.bmiTitle, { color: theme.colors.text }]}>Set Weight Goal</Text>

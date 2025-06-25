@@ -172,8 +172,10 @@ class MongoDBService {
 
   async logout() {
     try {
-      await this.api.post('/auth/logout');
+      // Since the backend doesn't actually invalidate tokens, 
+      // we just clear the token locally
       this.setToken(null);
+      return { message: 'Logged out successfully' };
     } catch (error) {
       this.setToken(null);
       throw error;
@@ -411,6 +413,18 @@ class MongoDBService {
   async toggleReminder(reminderId) {
     try {
       const response = await this.api.patch(`/reminders/${reminderId}/toggle`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updatePassword(currentPassword, newPassword) {
+    try {
+      const response = await this.api.put('/users/password', {
+        currentPassword,
+        newPassword
+      });
       return response.data;
     } catch (error) {
       throw error;

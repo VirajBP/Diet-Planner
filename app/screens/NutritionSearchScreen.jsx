@@ -296,7 +296,7 @@ const NutritionSearchScreen = () => {
           style={[styles.testButton, { backgroundColor: customColors.card }]}
           onPress={testAllMeals}
         >
-          <Ionicons name="bug" size={20} color={theme.colors.primary} />
+          <Ionicons name="bug" size={20} color={customColors.primary} />
         </TouchableOpacity>
       </View>
 

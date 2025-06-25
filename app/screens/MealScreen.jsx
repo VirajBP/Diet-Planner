@@ -13,8 +13,10 @@ import {
     View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Picker } from '../components/ui/Picker';
 import { useMeals } from '../context/MealsContext';
 import { useTheme } from '../context/ThemeContext';
+import { mongodbService } from '../services/mongodb.service';
 
 // Fresh & Calm (Mint Theme)
 const FRESH_CALM_LIGHT = {
@@ -44,14 +46,18 @@ const MealScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [groupedMeals, setGroupedMeals] = useState([]);
   const [newMeal, setNewMeal] = useState({
-    type: 'breakfast',
     name: '',
     quantity: '',
-    ingredients: '',
+    unit: 'plate',
+    type: 'breakfast',
   });
-  const [suggestions, setSuggestions] = useState([]);
+  const [mealSuggestions, setMealSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [allowedUnits, setAllowedUnits] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
   const [customIngredients, setCustomIngredients] = useState('');
   const navigation = useNavigation();
 
@@ -69,6 +75,25 @@ const MealScreen = () => {
     'slice': 90,
     'spoon': 40,
   };
+
+  const UNIT_OPTIONS = [
+    { label: 'Plate', value: 'plate' },
+    { label: 'Bowl', value: 'bowl' },
+    { label: 'Half Bowl', value: 'half bowl' },
+    { label: 'Cup', value: 'cup' },
+    { label: 'Glass', value: 'glass' },
+    { label: 'Piece', value: 'piece' },
+    { label: 'Serving', value: 'serving' },
+    { label: 'Slice', value: 'slice' },
+    { label: 'Spoon', value: 'spoon' },
+  ];
+
+  const mealTypes = [
+    { label: 'Breakfast', value: 'breakfast' },
+    { label: 'Lunch', value: 'lunch' },
+    { label: 'Dinner', value: 'dinner' },
+    { label: 'Snack', value: 'snack' }
+  ];
 
   const dynamicStyles = {
     container: {
@@ -303,49 +328,91 @@ const MealScreen = () => {
       top: 16,
       right: 16,
       padding: 8,
-    }
+    },
+    cancelButtonText: {
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    saveButton: {
+      backgroundColor: customColors.primary,
+    },
+    saveButtonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: '500',
+    },
   };
 
   useEffect(() => {
     loadMeals();
   }, [loadMeals]);
 
-  const parseQuantityToCalories = (quantity) => {
-    if (!quantity) return 0;
-    const match = quantity.match(/([\d.]+)\s*(\w+|half bowl|and half bowl)/i);
-    if (!match) return 0;
-    let amount = parseFloat(match[1]);
-    let unit = match[2].toLowerCase();
-    if (unit.includes('half')) {
-      amount = 0.5;
-      unit = 'bowl';
+  // Group meals by date for the last 7 days
+  useEffect(() => {
+    if (meals) {
+      const today = new Date();
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      // Filter meals for the last 7 days
+      const recentMeals = meals.filter(meal => {
+        const mealDate = new Date(meal.date);
+        return mealDate >= sevenDaysAgo && mealDate <= today;
+      });
+      // Group meals by formatted date string
+      const grouped = recentMeals.reduce((acc, meal) => {
+        const dateStr = new Date(meal.date).toISOString().split('T')[0];
+        if (!acc[dateStr]) {
+          acc[dateStr] = {
+            date: dateStr,
+            meals: [],
+            totalCalories: 0
+          };
+        }
+        acc[dateStr].meals.push(meal);
+        acc[dateStr].totalCalories += meal.calories || 0;
+        return acc;
+      }, {});
+      // Convert to array and sort by date (newest first)
+      const sortedGroupedMeals = Object.values(grouped).sort((a, b) => 
+        new Date(b.date) - new Date(a.date)
+      );
+      setGroupedMeals(sortedGroupedMeals);
     }
+  }, [meals]);
+
+  const parseQuantityToCalories = (quantity, unit) => {
+    if (!quantity || !unit) return 0;
+    let amount = parseFloat(quantity);
+    if (isNaN(amount)) return 0;
     const caloriesPerUnit = UNIT_CALORIES[unit] || 0;
     return Math.round(amount * caloriesPerUnit);
   };
 
   const addMeal = async () => {
-    if (!newMeal.name || !newMeal.quantity || !newMeal.type) {
+    if (!newMeal.name || !newMeal.quantity || !newMeal.unit || !newMeal.type) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
-
+    if (allowedUnits && !allowedUnits.includes(newMeal.unit)) {
+      Alert.alert('Invalid Unit', `You cannot log ${newMeal.name} in ${newMeal.unit} unit. Allowed units: ${allowedUnits.join(', ')}`);
+      return;
+    }
     try {
       setLoading(true);
-      const calories = parseQuantityToCalories(newMeal.quantity);
+      const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit);
       const mealData = {
         name: newMeal.name,
         calories,
         type: newMeal.type,
-        quantity: newMeal.quantity,
-        ingredients: newMeal.ingredients ? newMeal.ingredients.split(',').map(i => i.trim()) : []
+        quantity: `${newMeal.quantity} ${newMeal.unit}`,
       };
-
       await addMealToContext(mealData);
-      setNewMeal({ name: '', quantity: '', type: 'breakfast', ingredients: '' });
+      setNewMeal({ name: '', quantity: '', unit: 'plate', type: 'breakfast' });
+      setAllowedUnits(null);
+      setShowSuggestions(false);
+      setMealSuggestions([]);
       setModalVisible(false);
     } catch (error) {
-      console.error('Error adding meal:', error);
       Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
@@ -377,43 +444,104 @@ const MealScreen = () => {
     }
   };
 
-  const renderMealItem = ({ item, index }) => (
-    <View key={`${item._id || item.name || index}-${item.date}`} style={[dynamicStyles.mealCard, { backgroundColor: customColors.card }]}>
-      <View style={dynamicStyles.mealHeader}>
-        <Text style={[dynamicStyles.mealName, { color: customColors.text }]}>{item.name || 'Unnamed Meal'}</Text>
-        <TouchableOpacity
-          style={dynamicStyles.deleteButton}
-          onPress={() => {
-            Alert.alert(
-              'Delete Meal',
-              'Are you sure you want to delete this meal?',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Delete',
-                  style: 'destructive',
-                  onPress: () => deleteMeal(item._id)
-                }
-              ]
-            );
-          }}
-        >
-          <Ionicons name="trash-outline" size={24} color={customColors.error} />
-        </TouchableOpacity>
-      </View>
-      <Text style={[dynamicStyles.mealType, { color: customColors.text }]}>
-        {item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : 'Other'}
-      </Text>
-      <Text style={[dynamicStyles.mealCalories, { color: customColors.primary }]}>
-        {item.calories || 0} calories
-      </Text>
-      {item.ingredients && item.ingredients.length > 0 && (
-        <Text style={[dynamicStyles.mealIngredients, { color: customColors.text + '80' }]}>
-          {Array.isArray(item.ingredients) ? item.ingredients.join(', ') : item.ingredients}
+  // Fetch meal suggestions as user types
+  const fetchMealSuggestions = async (query) => {
+    if (!query || query.length < 2) {
+      setMealSuggestions([]);
+      setShowSuggestions(false);
+      setAllowedUnits(null);
+      return;
+    }
+    try {
+      const suggestions = await mongodbService.getMealSuggestions();
+      // Filter suggestions by query
+      const filtered = suggestions.filter(m => m.name.toLowerCase().includes(query.toLowerCase()));
+      setMealSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } catch (e) {
+      setMealSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // When user selects a suggestion
+  const handleSuggestionSelect = (suggestion) => {
+    setNewMeal({ ...newMeal, name: suggestion.name });
+    setAllowedUnits(suggestion.units.map(u => u.unit));
+    setShowSuggestions(false);
+    // If current unit is not allowed, reset to first allowed
+    if (!suggestion.units.some(u => u.unit === newMeal.unit)) {
+      setNewMeal(prev => ({ ...prev, unit: suggestion.units[0]?.unit || 'plate' }));
+    }
+  };
+
+  const renderDateGroup = ({ item }) => (
+    <View style={dynamicStyles.dateGroup}>
+      <View style={dynamicStyles.dateHeader}>
+        <Text style={[dynamicStyles.dateHeader, { color: customColors.text }]}>
+          {formatDate(item.date)} - {item.totalCalories} cal
         </Text>
-      )}
+      </View>
+      {item.meals.map((meal, index) => (
+        <View key={`${meal._id || meal.name || index}-${meal.date}`} style={[dynamicStyles.mealCard, { backgroundColor: customColors.card }]}>
+          <View style={dynamicStyles.mealHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={[dynamicStyles.mealName, { color: customColors.text }]}>{meal.name || 'Unnamed Meal'}</Text>
+              <Text style={[dynamicStyles.mealType, { color: customColors.text }]}>
+                {meal.type ? meal.type.charAt(0).toUpperCase() + meal.type.slice(1) : 'Other'}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={dynamicStyles.deleteButton}
+              onPress={() => {
+                Alert.alert(
+                  'Delete Meal',
+                  'Are you sure you want to delete this meal?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Delete',
+                      style: 'destructive',
+                      onPress: () => deleteMeal(meal._id)
+                    }
+                  ]
+                );
+              }}
+            >
+              <Ionicons name="trash-outline" size={20} color={customColors.error} />
+            </TouchableOpacity>
+          </View>
+          <Text style={[dynamicStyles.mealCalories, { color: customColors.primary }]}>
+            {meal.calories || 0} cal
+          </Text>
+          {meal.ingredients && meal.ingredients.length > 0 && (
+            <Text style={[dynamicStyles.mealIngredients, { color: customColors.text + '80' }]}>
+              {Array.isArray(meal.ingredients) ? meal.ingredients.join(', ') : meal.ingredients}
+            </Text>
+          )}
+        </View>
+      ))}
     </View>
   );
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+  };
 
   const renderAddMealModal = () => (
     <Modal
@@ -423,97 +551,74 @@ const MealScreen = () => {
       onRequestClose={() => setModalVisible(false)}
     >
       <View style={[dynamicStyles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-        <View style={[dynamicStyles.modalContent, { backgroundColor: customColors.background }]}>
-          <Text style={[dynamicStyles.modalTitle, { color: customColors.text }]}>Add Meal</Text>
+        <View style={[dynamicStyles.modalContent, { backgroundColor: customColors.card }]}>
+          <Text style={[dynamicStyles.modalTitle, { color: customColors.text }]}>Add New Meal</Text>
           
-          <View style={dynamicStyles.inputContainer}>
-            <Text style={[dynamicStyles.inputLabel, { color: customColors.text }]}>Type</Text>
-            <View style={[dynamicStyles.picker, { backgroundColor: customColors.card }]}>
-              <TouchableOpacity
-                style={[
-                  dynamicStyles.pickerOption,
-                  newMeal.type === 'breakfast' && dynamicStyles.selectedOption,
-                ]}
-                onPress={() => setNewMeal({ ...newMeal, type: 'breakfast' })}
-              >
-                <Text style={[dynamicStyles.pickerText, { color: customColors.text }]}>Breakfast</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  dynamicStyles.pickerOption,
-                  newMeal.type === 'lunch' && dynamicStyles.selectedOption,
-                ]}
-                onPress={() => setNewMeal({ ...newMeal, type: 'lunch' })}
-              >
-                <Text style={[dynamicStyles.pickerText, { color: customColors.text }]}>Lunch</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  dynamicStyles.pickerOption,
-                  newMeal.type === 'dinner' && dynamicStyles.selectedOption,
-                ]}
-                onPress={() => setNewMeal({ ...newMeal, type: 'dinner' })}
-              >
-                <Text style={[dynamicStyles.pickerText, { color: customColors.text }]}>Dinner</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  dynamicStyles.pickerOption,
-                  newMeal.type === 'snack' && dynamicStyles.selectedOption,
-                ]}
-                onPress={() => setNewMeal({ ...newMeal, type: 'snack' })}
-              >
-                <Text style={[dynamicStyles.pickerText, { color: customColors.text }]}>Snack</Text>
-              </TouchableOpacity>
+          <TextInput
+            style={[dynamicStyles.input, { backgroundColor: customColors.background, color: customColors.text, borderColor: customColors.border }]}
+            placeholder="Meal Name"
+            placeholderTextColor="#8E8E93"
+            value={newMeal.name}
+            onChangeText={text => {
+              setNewMeal({ ...newMeal, name: text });
+              fetchMealSuggestions(text);
+              setAllowedUnits(null); // Reset allowed units until suggestion is picked
+            }}
+            autoCorrect={false}
+          />
+          
+          {showSuggestions && (
+            <View style={{ backgroundColor: customColors.card, borderRadius: 8, maxHeight: 120, marginBottom: 8 }}>
+              {mealSuggestions.map(suggestion => (
+                <TouchableOpacity
+                  key={suggestion.id}
+                  style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: customColors.border }}
+                  onPress={() => handleSuggestionSelect(suggestion)}
+                >
+                  <Text style={{ color: customColors.text }}>{suggestion.name}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          </View>
+          )}
+          
+          <TextInput
+            style={[dynamicStyles.input, { backgroundColor: customColors.background, color: customColors.text, borderColor: customColors.border }]}
+            placeholder="Quantity"
+            placeholderTextColor="#8E8E93"
+            keyboardType="numeric"
+            value={newMeal.quantity}
+            onChangeText={(text) => setNewMeal({ ...newMeal, quantity: text })}
+          />
 
-          <View style={dynamicStyles.inputContainer}>
-            <Text style={[dynamicStyles.inputLabel, { color: customColors.text }]}>Name</Text>
-            <TextInput
-              style={[dynamicStyles.input, { backgroundColor: customColors.card, color: customColors.text }]}
-              value={newMeal.name}
-              onChangeText={(text) => setNewMeal({ ...newMeal, name: text })}
-              placeholder="Enter meal name"
-              placeholderTextColor={customColors.text}
-            />
-          </View>
+          <Picker
+            label="Unit"
+            selectedValue={newMeal.unit}
+            onValueChange={(value) => setNewMeal({ ...newMeal, unit: value })}
+            options={(allowedUnits ? UNIT_OPTIONS.filter(opt => allowedUnits.includes(opt.value)) : UNIT_OPTIONS)}
+            placeholder="Select Unit"
+          />
 
-          <View style={dynamicStyles.inputContainer}>
-            <Text style={[dynamicStyles.inputLabel, { color: customColors.text }]}>Quantity (e.g., 1 plate, 1 bowl, 1.5 bowl)</Text>
-            <TextInput
-              style={[dynamicStyles.input, { backgroundColor: customColors.card, color: customColors.text }]}
-              value={newMeal.quantity}
-              onChangeText={(text) => setNewMeal({ ...newMeal, quantity: text })}
-              placeholder="e.g., 1 plate, 1 bowl, 1.5 bowl"
-              placeholderTextColor={customColors.text}
-            />
-          </View>
-
-          <View style={dynamicStyles.inputContainer}>
-            <Text style={[dynamicStyles.inputLabel, { color: customColors.text }]}>Ingredients (optional)</Text>
-            <TextInput
-              style={[dynamicStyles.input, { backgroundColor: customColors.card, color: customColors.text }]}
-              value={newMeal.ingredients}
-              onChangeText={(text) => setNewMeal({ ...newMeal, ingredients: text })}
-              placeholder="Enter ingredients (comma separated)"
-              placeholderTextColor={customColors.text}
-              multiline
-            />
-          </View>
-
+          <Picker
+            label="Meal Type"
+            selectedValue={newMeal.type}
+            onValueChange={(value) => setNewMeal({ ...newMeal, type: value })}
+            options={mealTypes}
+            placeholder="Select Meal Type"
+          />
+          
           <View style={dynamicStyles.modalButtons}>
             <TouchableOpacity
-              style={[dynamicStyles.modalButton, dynamicStyles.cancelButton]}
+              style={[dynamicStyles.modalButton, dynamicStyles.cancelButton, { backgroundColor: customColors.background }]}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={dynamicStyles.buttonText}>Cancel</Text>
+              <Text style={[dynamicStyles.cancelButtonText, { color: customColors.text }]}>Cancel</Text>
             </TouchableOpacity>
+            
             <TouchableOpacity
-              style={[dynamicStyles.modalButton, dynamicStyles.addButton, { backgroundColor: customColors.primary }]}
+              style={[dynamicStyles.modalButton, dynamicStyles.saveButton, { backgroundColor: customColors.primary }]}
               onPress={addMeal}
             >
-              <Text style={[dynamicStyles.buttonText, { color: '#FFFFFF' }]}>Add Meal</Text>
+              <Text style={dynamicStyles.saveButtonText}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -597,9 +702,9 @@ const MealScreen = () => {
         </View>
       ) : (
         <FlatList
-          data={meals}
-          keyExtractor={(item, index) => `${item._id || item.name || index}-${item.date}`}
-          renderItem={renderMealItem}
+          data={groupedMeals}
+          keyExtractor={(item, index) => `date-group-${item.date}-${index}`}
+          renderItem={renderDateGroup}
           contentContainerStyle={dynamicStyles.mealsList}
           ListEmptyComponent={
             <View style={dynamicStyles.emptyContainer}>

@@ -98,7 +98,19 @@ router.post('/', auth, async (req, res) => {
     console.log('Saving meal:', meal);
     await meal.save();
     console.log('Meal saved successfully');
-    res.status(201).json(meal);
+    
+    // Return meal in consistent format
+    res.status(201).json({
+      id: meal._id,
+      type: meal.type,
+      name: meal.name,
+      calories: meal.calories,
+      ingredients: meal.ingredients,
+      protein: meal.protein || 0,
+      carbs: meal.carbs || 0,
+      fat: meal.fat || 0,
+      date: meal.date
+    });
   } catch (error) {
     console.error('Create meal error:', error);
     res.status(400).json({ message: error.message });

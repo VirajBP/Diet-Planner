@@ -1,5 +1,6 @@
 import { useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   Alert,
   Modal,
@@ -13,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { Ionicons } from '@expo/vector-icons'
 
 // Fresh & Calm (Mint Theme)
 const FRESH_CALM_LIGHT = {
@@ -40,6 +42,7 @@ const CalorieCalculatorScreen = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
   const route = useRoute();
+  const navigation = useNavigation();
   const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const autofillProfile = route.params?.autofill && (route.params?.profile || user?.profile);
@@ -123,6 +126,12 @@ const CalorieCalculatorScreen = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 16 , flexDirection: 'row', alignItems: 'center', gap: 10, margin: 10}}>
+          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
+          <Text style={[styles.title, { color: theme.colors.text }]}>Calorie Calculator</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {autofillProfile && (
           <Text style={{ color: customColors.primary, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>
@@ -264,6 +273,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
     fontSize: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
   genderContainer: {
     flexDirection: 'row',
