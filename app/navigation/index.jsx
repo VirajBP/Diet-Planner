@@ -1,11 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React from 'react';
+import { setStatusBarBackgroundColor, setStatusBarStyle } from 'expo-status-bar';
+import React, { useEffect } from 'react';
+import { useColorScheme } from 'react-native';
 import { useTheme as usePaperTheme } from 'react-native-paper';
 
 // Import screens
+import AboutUsScreen from '../screens/AboutUsScreen';
 import CalorieCalculatorScreen from '../screens/CalorieCalculatorScreen';
+import ContactUsScreen from '../screens/ContactUsScreen';
+import HelpCenterScreen from '../screens/HelpCenterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MealScreen from '../screens/MealScreen';
@@ -13,6 +18,7 @@ import MealSuggestionsScreen from '../screens/MealSuggestionsScreen';
 import NutritionSearchScreen from '../screens/NutritionSearchScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import PremiumScreen from '../screens/PremiumScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import RemindersScreen from '../screens/RemindersScreen';
@@ -20,6 +26,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import WaterTrackerScreen from '../screens/WaterTrackerScreen';
 import WeightLogScreen from '../screens/WeightLogScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
+import ChatbotScreen from '../screens/ChatbotScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -83,6 +90,7 @@ function TabNavigator() {
             <Ionicons name="restaurant" size={size} color={color} />
           ),
         }}
+        
       />
       <Tab.Screen
         name="Water"
@@ -160,6 +168,11 @@ function MainStack() {
       <Stack.Screen name="NutritionSearch" component={NutritionSearchScreen} />
       <Stack.Screen name="Reminders" component={RemindersScreen} />
       <Stack.Screen name="CalorieCalculator" component={CalorieCalculatorScreen} />
+      <Stack.Screen name="ContactUs" component={ContactUsScreen} />
+      <Stack.Screen name="AboutUs" component={AboutUsScreen} />
+      <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+      <Stack.Screen name="Chatbot" component={ChatbotScreen}/>
     </Stack.Navigator>
   );
 }
@@ -168,6 +181,14 @@ function RootNavigator() {
   const paperTheme = usePaperTheme();
   const isDark = paperTheme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
+  const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    // Set status bar style and background color dynamically
+    setStatusBarStyle(isDark ? 'light' : 'dark');
+    setStatusBarBackgroundColor(isDark ? '#121212' : '#FDFEFE', true);
+  }, [isDark, colorScheme]);
+
   return (
     <Stack.Navigator
       screenOptions={{

@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema({
     },
     dietaryRestrictions: {
       type: [String],
-      enum: ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher'],
+      enum: ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free'],
       default: []
     },
     stats: {

@@ -84,5 +84,23 @@ const seedPredefinedMeals = async () => {
   }
 };
 
+// Add this function to update all predefined meals to have isPremium: false
+async function setAllMealsToFree() {
+  try {
+    const result = await PredefinedMeal.updateMany(
+      { isPremium: { $exists: false } },
+      { $set: { isPremium: false } }
+    );
+    console.log(`Updated ${result.nModified || result.modifiedCount} meals to have isPremium: false`);
+  } catch (error) {
+    console.error('Error updating meals:', error);
+  }
+}
+
+// Run the function if this script is executed directly
+if (require.main === module) {
+  setAllMealsToFree().then(() => process.exit(0));
+}
+
 // Run the seeding function
 seedPredefinedMeals(); 

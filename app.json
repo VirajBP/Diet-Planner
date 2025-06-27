@@ -27,7 +27,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "react-native-gesture-handler"
+      "react-native-gesture-handler",
+      [
+        "react-native-razorpay",
+        {
+          "android": {},
+          "ios": {}
+        }
+      ]
     ]
   }
 } 

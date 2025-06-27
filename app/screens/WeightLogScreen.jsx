@@ -2,14 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Modal
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -92,8 +92,8 @@ const WeightLogScreen = () => {
       const logs = await mongodbService.getWeightLogs();
       setWeightLogs(logs);
     } catch (error) {
-      console.error('Error loading weight logs:', error);
-      Alert.alert('Error', 'Failed to load weight logs');
+      // console.error('Error loading weight logs:', error);
+      // Alert.alert('Error', 'Failed to load weight logs');
     } finally {
       setLoading(false);
     }
@@ -228,12 +228,13 @@ const WeightLogScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={customColors.text} />
         </TouchableOpacity>
-        <Text style={styles.heading}>Weight Tracker</Text>
+        <Text style={[styles.heading, {color:customColors.text}]}>Weight Tracker</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* BMI Calculator Section */}
         <View style={[styles.bmiContainer, { backgroundColor: customColors.card }]}> 
           <Text style={[styles.bmiTitle, { color: customColors.text }]}>BMI Calculator</Text>
+          <View style={[styles.gapInputrowsbmi]}>
           <View style={styles.bmiInputsRow}>
             <TextInput
               style={[styles.input, { color: customColors.text, borderColor: customColors.border, flex: 1 }]}
@@ -251,17 +252,21 @@ const WeightLogScreen = () => {
               value={bmiHeight}
               onChangeText={setBmiHeight}
             />
-            <TextInput
-              style={[styles.input, { color: customColors.text, borderColor: customColors.border, flex: 1, marginLeft: 8 }]}
+            
+          </View>
+          <View style={[styles.bmiInputsRow]}>
+          <TextInput
+              style={[styles.input, { color: customColors.text, borderColor: customColors.border, flex: 1,  },{width:'50%'}, styles.bmisecondlevelboxes]}
               placeholder="Age"
               placeholderTextColor={customColors.text + '80'}
               keyboardType="numeric"
               value={bmiAge}
               onChangeText={setBmiAge}
             />
-            <TouchableOpacity style={[styles.addButton, { backgroundColor: customColors.primary, marginLeft: 8 }]} onPress={calculateBMI}>
+            <TouchableOpacity style={[styles.addButton, { backgroundColor: customColors.primary, marginLeft: 8, marginRight:10 }]} onPress={calculateBMI}>
               <Text style={styles.buttonText}>Calculate</Text>
             </TouchableOpacity>
+          </View>
           </View>
         </View>
         <Modal
@@ -303,22 +308,25 @@ const WeightLogScreen = () => {
           />
         </View> */}
 
-        <View style={[styles.inputContainer, { backgroundColor: customColors.card }]}>
-          <TextInput
-            style={[styles.input, { color: customColors.text, borderColor: customColors.border }]}
-            placeholder="Enter weight in kg"
-            placeholderTextColor={customColors.text + '80'}
-            keyboardType="numeric"
-            value={newWeight}
-            onChangeText={setNewWeight}
-          />
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: customColors.primary }]}
-            onPress={addWeightLog}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>Add Weight</Text>
-          </TouchableOpacity>
+        <View style={[styles.inputContainer, { backgroundColor: customColors.card, padding: 20, borderRadius: 12, marginBottom: 20 }]}> 
+          <Text style={[styles.bmiTitle, { color: customColors.text, marginBottom: 12, textAlign: 'left', alignSelf: 'flex-start' }]}>Add Weight Log</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%' }}>
+            <TextInput
+              style={[styles.input, { color: customColors.text, borderColor: customColors.border, backgroundColor: customColors.background, width: 140, marginBottom: 0, marginRight: 12 }]}
+              placeholder="Enter weight in kg"
+              placeholderTextColor={customColors.text + '80'}
+              keyboardType="numeric"
+              value={newWeight}
+              onChangeText={setNewWeight}
+            />
+            <TouchableOpacity
+              style={[styles.addButton, { backgroundColor: customColors.primary, width: 100, borderRadius: 8 }]}
+              onPress={addWeightLog}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>Add Weight</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Weight Chart (Premium Preview) */}
@@ -379,7 +387,7 @@ const WeightLogScreen = () => {
             <Ionicons name="calculator" size={20} color="white" />
             <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Go to Calorie Calculator</Text>
           </TouchableOpacity>
-          <Text style={{ color: customColors.text, marginTop: 8, fontStyle: 'italic', fontSize: 13 }}>
+          <Text style={{ color: customColors.text, marginTop: 8, fontStyle: 'italic', fontSize: 13, marginBottom: 10 }}>
             You can calculate your daily calories. Your profile data will be autofilled.
           </Text>
         </View>
@@ -501,7 +509,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     padding: 12,
     borderRadius: 10,
@@ -514,6 +522,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     marginRight: 12,
+  },
+  input2:{
+    flex: 1,
+    height: 23,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginRight: 20,
   },
   addButton: {
     padding: 10,
@@ -542,7 +558,7 @@ const styles = StyleSheet.create({
   chartContainer: {
     padding: 16,
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 30,
     alignItems: 'center',
   },
   chartOverlay: {
@@ -642,6 +658,15 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
     marginBottom: 20,
+    flex:1,
+    gap:5,
+    height:90
+  },
+  bmisecondlevelboxes: {
+    width:10
+  },
+  bmicalculatorsecondlevel: {
+    flex:1,
   },
   bmiTitle: {
     fontSize: 18,
@@ -651,6 +676,10 @@ const styles = StyleSheet.create({
   bmiInputsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  gapInputrowsbmi:{
+    flex:1,
+    gap:15,
   },
   deleteButton: {
     padding: 8,

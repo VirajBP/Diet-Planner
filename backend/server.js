@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const config = require('./config');
+const paymentsRoutes = require('./routes/payments')
 
 const app = express();
 
@@ -19,11 +20,14 @@ app.use('/api', (req, res, next) => {
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/meals', require('./routes/meals'));
+app.use('/api/meal-packages', require('./routes/mealPackages'));
 app.use('/api/water-logs', require('./routes/waterLogs'));
 app.use('/api/weight-logs', require('./routes/weightLogs'));
 app.use('/api/grocery-lists', require('./routes/groceryLists'));
 app.use('/api/nutrition', require('./routes/nutrition'));
 app.use('/api/reminders', require('./routes/reminders'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/payments', paymentsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

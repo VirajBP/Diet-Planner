@@ -71,9 +71,7 @@ const RegisterScreen = ({ navigation }) => {
     { label: 'Vegan', value: 'vegan' },
     { label: 'Gluten-free', value: 'gluten-free' },
     { label: 'Dairy-free', value: 'dairy-free' },
-    { label: 'Nut-free', value: 'nut-free' },
-    { label: 'Halal', value: 'halal' },
-    { label: 'Kosher', value: 'kosher' }
+    { label: 'Nut-free', value: 'nut-free' }
   ];
 
   const handleInputChange = (field, value) => {

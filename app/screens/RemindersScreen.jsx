@@ -2,17 +2,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
@@ -58,6 +59,7 @@ const RemindersScreen = () => {
   const navigation = useNavigation();
   const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
+  const [isTimePickerVisible, setTimePickerVisible] = useState(false);
 
   useEffect(() => {
     loadReminders();
@@ -198,6 +200,14 @@ const RemindersScreen = () => {
     }
   };
 
+  const handleConfirmTime = (date) => {
+    // Format to HH:MM (24-hour)
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    setFormData({ ...formData, time: `${hours}:${minutes}` });
+    setTimePickerVisible(false);
+  };
+
   const renderReminderItem = ({ item }) => (
     <View style={[styles.reminderCard, { backgroundColor: customColors.card }]}>
       <View style={styles.reminderHeader}>
@@ -313,7 +323,7 @@ const RemindersScreen = () => {
                       key={mealType}
                       style={[
                         styles.typeOption,
-                        formData.mealType === mealType && { backgroundColor: theme.colors.primary }
+                        formData.mealType === mealType && { backgroundColor: customColors.primary }
                       ]}
                       onPress={() => setFormData({ ...formData, mealType })}
                     >
@@ -362,16 +372,19 @@ const RemindersScreen = () => {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Time</Text>
-              <TextInput
-                style={[styles.textInput, { 
-                  backgroundColor: theme.colors.card,
-                  color: theme.colors.text,
-                  borderColor: theme.colors.border
-                }]}
-                value={formData.time}
-                onChangeText={(text) => setFormData({ ...formData, time: text })}
-                placeholder="HH:MM"
-                placeholderTextColor={theme.colors.text + '60'}
+              <TouchableOpacity
+                style={[styles.textInput, { justifyContent: 'center', backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+                onPress={() => setTimePickerVisible(true)}
+              >
+                <Text style={{ color: theme.colors.text, fontSize: 16 }}>{formData.time || 'Select Time'}</Text>
+              </TouchableOpacity>
+              <DateTimePickerModal
+                isVisible={isTimePickerVisible}
+                mode="time"
+                date={formData.time ? new Date(`1970-01-01T${formData.time}:00`) : new Date()}
+                onConfirm={handleConfirmTime}
+                onCancel={() => setTimePickerVisible(false)}
+                is24Hour={true}
               />
             </View>
           </ScrollView>
@@ -388,7 +401,7 @@ const RemindersScreen = () => {
               <Text style={[styles.buttonText, { color: theme.colors.text }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: theme.colors.primary }]}
+              style={[styles.button, { backgroundColor: customColors.primary }]}
               onPress={handleSaveReminder}
             >
               <Text style={[styles.buttonText, { color: 'white' }]}>
@@ -410,12 +423,12 @@ const RemindersScreen = () => {
         </TouchableOpacity>
         
         <View style={styles.headerButtons}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.testButton, { backgroundColor: theme.colors.card }]}
             onPress={testNotification}
           >
             <Ionicons name="notifications" size={20} color={customColors.primary} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity
             style={[styles.addButton, { backgroundColor: customColors.primary }]}
             onPress={() => setShowModal(true)}

@@ -1,16 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../components/ui/Card';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { mongodbService } from '../services/mongodb.service';
 
 const PREMIUM_FEATURES = [
   {
@@ -60,13 +63,42 @@ const FREE_FEATURES = [
 
 const PremiumScreen = () => {
   const { theme } = useTheme();
+  const { user } = useAuth();
 
-  const handleUpgrade = () => {
-    Alert.alert(
-      'Coming Soon',
-      'Premium upgrade feature will be available soon!',
-      [{ text: 'OK', onPress: () => console.log('OK Pressed') }]
-    );
+  const handleGoPremium = async () => {
+    try {
+      // 1. Call backend to create order (amount in rupees)
+      const amount = 499; // Example: 499 INR for premium
+      const orderRes = await mongodbService.api.post('/payments/create-order', { amount });
+      const order = orderRes.data;
+      // 2. Open Razorpay checkout
+      const options = {
+        description: 'NutriPulse Premium Subscription',
+        currency: 'INR',
+        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID, // Use test key
+        amount: order.amount, // in paise
+        order_id: order.id,
+        name: 'NutriPulse',
+        prefill: {
+          email: user?.email || '',
+          contact: user?.profile?.phone || '',
+          name: user?.profile?.name || '',
+        },
+        theme: { color: '#2ECC71' },
+      };
+      RazorpayCheckout.open(options)
+        .then(async (data) => {
+          // Payment Success
+          Alert.alert('Success', 'Payment successful! You are now a premium user.');
+          // Optionally, refresh user profile or navigate
+        })
+        .catch((error) => {
+          // Payment Failed or Cancelled
+          Alert.alert('Payment Failed', error.description || 'Payment was not completed.');
+        });
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Could not initiate payment.');
+    }
   };
 
   const renderFeature = (feature, isPremium = false) => (
@@ -112,7 +144,7 @@ const PremiumScreen = () => {
           <Text style={[styles.period, { color: theme.colors.text }]}>/month</Text>
           <TouchableOpacity
             style={[styles.upgradeButton, { backgroundColor: theme.colors.primary }]}
-            onPress={handleUpgrade}
+            onPress={handleGoPremium}
           >
             <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
           </TouchableOpacity>

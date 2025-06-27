@@ -40,7 +40,7 @@ const predefinedMealSchema = new mongoose.Schema({
   units: [unitSchema],
   tags: [{
     type: String,
-    enum: ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'halal', 'kosher', 'none']
+    enum: ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'none']
   }],
   ingredients: [{
     type: String
@@ -69,6 +69,14 @@ const predefinedMealSchema = new mongoose.Schema({
   servings: {
     type: Number,
     default: 2
+  },
+  imageUrl: {
+    type: String,
+    default: ''
+  },
+  isPremium: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

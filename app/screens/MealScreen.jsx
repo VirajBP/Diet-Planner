@@ -6,7 +6,6 @@ import {
     Alert,
     FlatList,
     Modal,
-    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '../components/ui/Picker';
+import { useAuth } from '../context/AuthContext';
 import { useMeals } from '../context/MealsContext';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
@@ -56,10 +56,8 @@ const MealScreen = () => {
   const [mealSuggestions, setMealSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [allowedUnits, setAllowedUnits] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false);
-  const [customIngredients, setCustomIngredients] = useState('');
   const navigation = useNavigation();
+  const { user } = useAuth();
 
   const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
@@ -380,11 +378,15 @@ const MealScreen = () => {
     }
   }, [meals]);
 
-  const parseQuantityToCalories = (quantity, unit) => {
+  const parseQuantityToCalories = (quantity, unit, suggestion) => {
     if (!quantity || !unit) return 0;
     let amount = parseFloat(quantity);
     if (isNaN(amount)) return 0;
-    const caloriesPerUnit = UNIT_CALORIES[unit] || 0;
+    let caloriesPerUnit = UNIT_CALORIES[unit] || 0;
+    if (suggestion && suggestion.units) {
+      const unitObj = suggestion.units.find(u => u.unit === unit);
+      if (unitObj) caloriesPerUnit = unitObj.calories;
+    }
     return Math.round(amount * caloriesPerUnit);
   };
 
@@ -397,9 +399,11 @@ const MealScreen = () => {
       Alert.alert('Invalid Unit', `You cannot log ${newMeal.name} in ${newMeal.unit} unit. Allowed units: ${allowedUnits.join(', ')}`);
       return;
     }
+    // Find the selected suggestion if available
+    const selectedSuggestion = mealSuggestions.find(s => s.name === newMeal.name);
     try {
       setLoading(true);
-      const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit);
+      const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit, selectedSuggestion);
       const mealData = {
         name: newMeal.name,
         calories,
@@ -435,7 +439,7 @@ const MealScreen = () => {
     try {
       setLoading(true);
       const response = await mongodbService.getMealSuggestions();
-      setSuggestions(response);
+      setMealSuggestions(response);
     } catch (error) {
       console.error('Error loading meal suggestions:', error);
       Alert.alert('Error', 'Failed to load meal suggestions');
@@ -626,44 +630,6 @@ const MealScreen = () => {
     </Modal>
   );
 
-  const renderMealSuggestions = (mealType) => {
-    if (!suggestions || !suggestions[mealType]) return null;
-
-    return (
-      <View style={dynamicStyles.suggestionsContainer}>
-        <Text style={[dynamicStyles.sectionTitle, { color: customColors.text }]}>
-          Suggested {mealType.charAt(0).toUpperCase() + mealType.slice(1)} Options
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {suggestions[mealType].map((suggestion, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[dynamicStyles.suggestionCard, { backgroundColor: customColors.card }]}
-              onPress={() => {
-                setNewMeal({
-                  name: suggestion.name,
-                  quantity: suggestion.quantity,
-                  type: mealType.charAt(0).toUpperCase() + mealType.slice(1)
-                });
-                setModalVisible(true);
-              }}
-            >
-              <Text style={[dynamicStyles.suggestionName, { color: customColors.text }]}>
-                {suggestion.name}
-              </Text>
-              <Text style={[dynamicStyles.suggestionCalories, { color: customColors.primary }]}>
-                {suggestion.calories} cal
-              </Text>
-              <Text style={[dynamicStyles.suggestionIngredients, { color: customColors.text + '80' }]}>
-                {suggestion.ingredients.join(', ')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  };
-
   if (loading && !meals) {
     return (
       <SafeAreaView style={[dynamicStyles.container, { backgroundColor: customColors.background }]}>
@@ -695,7 +661,6 @@ const MealScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-
       {loading ? (
         <View style={dynamicStyles.loadingContainer}>
           <Text style={[dynamicStyles.loadingText, { color: customColors.text }]}>Loading meals...</Text>
@@ -713,66 +678,13 @@ const MealScreen = () => {
                 size={64} 
                 color={customColors.text + '40'} 
               />
-              <Text style={[dynamicStyles.emptyText, { color: customColors.text }]}>
-                No meals recorded yet
-              </Text>
-              <Text style={[dynamicStyles.emptySubText, { color: customColors.text + '80' }]}>
-                Tap the Add Meal button to get started
-              </Text>
+              <Text style={[dynamicStyles.emptyText, { color: customColors.text }]}>No meals recorded yet</Text>
+              <Text style={[dynamicStyles.emptySubText, { color: customColors.text + '80' }]}>Tap the Add Meal button to get started</Text>
             </View>
           }
         />
       )}
-
       {renderAddMealModal()}
-
-      <Modal
-        visible={showSuggestions}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowSuggestions(false)}
-      >
-        <View style={[dynamicStyles.modalContainer, { backgroundColor: customColors.background }]}>
-          <View style={[dynamicStyles.modalContent, { backgroundColor: customColors.card }]}>
-            <TouchableOpacity
-              style={dynamicStyles.closeButton}
-              onPress={() => setShowSuggestions(false)}
-            >
-              <Ionicons name="close" size={24} color={customColors.text} />
-            </TouchableOpacity>
-
-            <Text style={[dynamicStyles.modalTitle, { color: customColors.text }]}>
-              Meal Suggestions
-            </Text>
-
-            <TextInput
-              style={[dynamicStyles.input, { 
-                backgroundColor: customColors.inputBackground,
-                color: customColors.text,
-                borderColor: customColors.border,
-              }]}
-              value={customIngredients}
-              onChangeText={setCustomIngredients}
-              placeholder="Enter ingredients (comma-separated)"
-              placeholderTextColor={customColors.text}
-            />
-
-            <TouchableOpacity
-              style={[dynamicStyles.submitButton, { backgroundColor: customColors.primary }]}
-              onPress={loadMealSuggestions}
-            >
-              <Text style={dynamicStyles.submitButtonText}>Get Suggestions</Text>
-            </TouchableOpacity>
-
-            <ScrollView style={dynamicStyles.suggestionsList}>
-              {renderMealSuggestions('breakfast')}
-              {renderMealSuggestions('lunch')}
-              {renderMealSuggestions('dinner')}
-              {renderMealSuggestions('snack')}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };

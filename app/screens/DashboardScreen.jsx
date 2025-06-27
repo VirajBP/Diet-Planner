@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -314,7 +313,6 @@ const DashboardScreen = () => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: customColors.text }]}>Dashboard</Text>

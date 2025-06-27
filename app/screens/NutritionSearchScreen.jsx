@@ -96,20 +96,6 @@ const NutritionSearchScreen = () => {
     handleSearch();
   };
 
-  const testAllMeals = async () => {
-    setLoading(true);
-    try {
-      const data = await mongodbService.getAllMeals();
-      console.log('All meals:', data);
-      Alert.alert('Debug', `Found ${data.count} meals in database`);
-    } catch (error) {
-      console.error('Test error:', error);
-      Alert.alert('Error', 'Failed to test meals endpoint');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleMealSelect = async (meal) => {
     setLoading(true);
     try {
@@ -141,7 +127,7 @@ const NutritionSearchScreen = () => {
           </Text>
           <View style={styles.itemBadges}>
             {isPredefined && (
-              <View style={[styles.badge, { backgroundColor: theme.colors.primary }]}>
+              <View style={[styles.badge, { backgroundColor: customColors.primary }]}>
                 <Text style={styles.badgeText}>Predefined</Text>
               </View>
             )}
@@ -204,7 +190,7 @@ const NutritionSearchScreen = () => {
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Nutrition per Unit</Text>
                 {selectedMeal.units.map((unit, index) => (
                   <View key={index} style={[styles.unitCard, { backgroundColor: theme.colors.card }]}>
-                    <Text style={[styles.unitName, { color: theme.colors.primary }]}>
+                    <Text style={[styles.unitName, { color: customColors.primary }]}>
                       {unit.unit} ({unit.calories} calories)
                     </Text>
                     <View style={styles.nutritionGrid}>
@@ -240,7 +226,7 @@ const NutritionSearchScreen = () => {
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recipe</Text>
                 {selectedMeal.recipe.map((step, index) => (
                   <View key={index} style={styles.recipeStep}>
-                    <Text style={[styles.stepNumber, { color: theme.colors.primary }]}>{index + 1}.</Text>
+                    <Text style={[styles.stepNumber, { color: customColors.primary }]}>{index + 1}.</Text>
                     <Text style={[styles.stepText, { color: theme.colors.text }]}>{step}</Text>
                   </View>
                 ))}
@@ -252,7 +238,7 @@ const NutritionSearchScreen = () => {
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Tags</Text>
                 <View style={styles.tagsContainer}>
                   {selectedMeal.tags.map((tag, index) => (
-                    <View key={index} style={[styles.tag, { backgroundColor: theme.colors.primary }]}>
+                    <View key={index} style={[styles.tag, { backgroundColor: customColors.primary }]}>
                       <Text style={styles.tagText}>{tag}</Text>
                     </View>
                   ))}
@@ -291,12 +277,6 @@ const NutritionSearchScreen = () => {
           onPress={handleSearch}
         >
           <Ionicons name="search" size={20} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.testButton, { backgroundColor: customColors.card }]}
-          onPress={testAllMeals}
-        >
-          <Ionicons name="bug" size={20} color={customColors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -553,11 +533,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 12,
     fontWeight: '500',
-  },
-  testButton: {
-    padding: 8,
-    borderRadius: 12,
-    marginLeft: 8,
   },
   suggestionsContainer: {
     padding: 16,

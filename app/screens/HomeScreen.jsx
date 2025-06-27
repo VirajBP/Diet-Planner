@@ -2,16 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../components/ui/Card';
@@ -71,7 +71,6 @@ const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState(0);
   const [profile, setProfile] = useState(null);
-  const goalCalories = profile?.dailyCalorieGoal || 2000;
   const [quote, setQuote] = useState('');
   const [todayWater, setTodayWater] = useState(0);
   const [todayCalories, setTodayCalories] = useState(0);
@@ -180,11 +179,15 @@ const HomeScreen = () => {
     { label: 'Spoon', value: 'spoon' },
   ];
 
-  const parseQuantityToCalories = (quantity, unit) => {
+  const parseQuantityToCalories = (quantity, unit, suggestion) => {
     if (!quantity || !unit) return 0;
     let amount = parseFloat(quantity);
     if (isNaN(amount)) return 0;
-    const caloriesPerUnit = UNIT_CALORIES[unit] || 0;
+    let caloriesPerUnit = UNIT_CALORIES[unit] || 0;
+    if (suggestion && suggestion.units) {
+      const unitObj = suggestion.units.find(u => u.unit === unit);
+      if (unitObj) caloriesPerUnit = unitObj.calories;
+    }
     return Math.round(amount * caloriesPerUnit);
   };
 
@@ -228,9 +231,11 @@ const HomeScreen = () => {
       Alert.alert('Invalid Unit', `You cannot log ${newMeal.name} in ${newMeal.unit} unit. Allowed units: ${allowedUnits.join(', ')}`);
       return;
     }
+    // Find the selected suggestion if available
+    const selectedSuggestion = mealSuggestions.find(s => s.name === newMeal.name);
     try {
       setLoading(true);
-      const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit);
+      const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit, selectedSuggestion);
       const mealData = {
         name: newMeal.name,
         calories,
@@ -277,9 +282,37 @@ const HomeScreen = () => {
     );
   };
 
-  const totalCalories = todayCalories;
-  const remainingCalories = goalCalories - totalCalories;
-  const progress = Math.min(totalCalories / goalCalories, 1);
+  // Helper to calculate BMR and calorie goals (match CalorieCalculatorScreen)
+  function getCalorieGoals(profile) {
+    if (!profile || !profile.weight || !profile.height || !profile.age || !profile.gender || !profile.activityLevel) {
+      return { maintain: 2000, lose: 1500, gain: 2500 };
+    }
+    let bmr;
+    if (profile.gender.toLowerCase() === 'male') {
+      bmr = 88.362 + (13.397 * parseFloat(profile.weight)) + (4.799 * parseFloat(profile.height)) - (5.677 * parseFloat(profile.age));
+    } else {
+      bmr = 447.593 + (9.247 * parseFloat(profile.weight)) + (3.098 * parseFloat(profile.height)) - (4.330 * parseFloat(profile.age));
+    }
+    let activityMultiplier;
+    switch ((profile.activityLevel || '').toLowerCase()) {
+      case 'sedentary': activityMultiplier = 1.2; break;
+      case 'light': activityMultiplier = 1.375; break;
+      case 'moderate': activityMultiplier = 1.55; break;
+      case 'active': activityMultiplier = 1.725; break;
+      case 'veryactive': activityMultiplier = 1.9; break;
+      default: activityMultiplier = 1.375;
+    }
+    const maintain = Math.round(bmr * activityMultiplier);
+    const lose = Math.round(maintain - 500);
+    const gain = Math.round(maintain + 500);
+    return { maintain, lose, gain };
+  }
+
+  // Use accurate daily calorie calculation for 'lose' goal
+  const calorieGoals = getCalorieGoals(profile);
+  const goalCalories = calorieGoals.lose;
+  const remainingCalories = goalCalories - todayCalories;
+  const progress = Math.min(todayCalories / goalCalories, 1);
 
   if (loading && !profile) {
     return (
@@ -305,7 +338,7 @@ const HomeScreen = () => {
 
         
 
-        <Card style={styles.calorieCard}>
+        <Card style={[styles.calorieCard, {backgroundColor: customColors.background} ]}>
           <ProgressCircle
             size={120}
             progress={progress}
@@ -314,19 +347,19 @@ const HomeScreen = () => {
             backgroundColor={customColors.border}
           >
             <View style={styles.calorieCircleContent}>
-              <Text style={[styles.calorieNumber, { color: customColors.text }]}>{totalCalories}</Text>
+              <Text style={[styles.calorieNumber, { color: customColors.text }]}>{todayCalories}</Text>
               <Text style={[styles.calorieLabel, { color: customColors.text }]}>consumed</Text>
             </View>
           </ProgressCircle>
           <View style={styles.calorieInfo}>
             <Text style={[styles.goalText, { color: customColors.text }]}>Goal: {goalCalories}</Text>
-            <Text style={[styles.remainingText, { color: customColors.text }]}>
-              Remaining: {remainingCalories}
-            </Text>
+            {(!profile || goalCalories === 1500) && (
+              <Text style={[styles.remainingText, { color: customColors.error, fontSize: 13 }]}>Set up your profile or use the Calorie Calculator for a personalized goal.</Text>
+            )}
           </View>
         </Card>
 
-        <Card style={styles.mealsCard}>
+        <Card style={[styles.mealsCard, {backgroundColor: customColors.background}]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: customColors.text }]}>Today's Meals</Text>
             <TouchableOpacity
@@ -343,7 +376,7 @@ const HomeScreen = () => {
             <Text style={[styles.emptyText, { color: customColors.text }]}>No meals logged today</Text>
           ) : (
             todaysMeals.map((meal, index) => (
-              <View key={meal._id || index} style={styles.mealItem}>
+              <View key={meal._id || index} style={[styles.mealItem,{borderBottomColor:customColors.border}]}>
                 <View>
                   <Text style={[styles.mealName, { color: customColors.text }]}>{meal.name || 'Unnamed Meal'}</Text>
                   <Text style={[styles.mealType, { color: customColors.text }]}>{meal.type ? meal.type.charAt(0).toUpperCase() + meal.type.slice(1) : 'Other'}</Text>
@@ -494,7 +527,7 @@ const HomeScreen = () => {
             </TouchableOpacity>
                 <TouchableOpacity
               style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
-              onPress={() => navigation.navigate('Random')}
+              onPress={() => navigation.navigate('Chatbot')}
             >
               <Ionicons name="person" size={24} color={customColors.primary} />
               <Text style={[styles.actionText, { color: theme.colors.text }]}>Personal ChatBot</Text>
@@ -653,7 +686,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A1A',
     borderRadius: 15,
     padding: 20,
-    marginBottom: 80,
+    marginBottom: 40,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -685,7 +718,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   mealName: {
     fontSize: 16,

@@ -472,6 +472,33 @@ class MongoDBService {
 
     return totalCalories;
   }
+
+  async getMealPackageSuggestions(goal = null, tags = [], calories = null) {
+    try {
+      const params = {};
+      if (goal) params.goal = goal;
+      if (tags && tags.length) params.tags = tags.join(',');
+      if (calories) params.calories = calories;
+      console.log('Calling /mealPackages/recommend with params:', params);
+      const response = await this.api.get('/mealPackages/recommend', { params });
+      console.log('Meal packages response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error in getMealPackageSuggestions:', error);
+      throw error;
+    }
+  }
+
+  async getPredefinedMeals({ mealType, limit = 5, offset = 0, ingredient = '' } = {}) {
+    try {
+      const params = { mealType, limit, offset };
+      if (ingredient) params.ingredient = ingredient;
+      const response = await this.api.get('/meals/predefined', { params });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 export default MongoDBService;

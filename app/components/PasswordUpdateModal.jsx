@@ -93,7 +93,16 @@ const PasswordUpdateModal = ({ visible, onClose, onSuccess }) => {
         }
       ]);
     } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to update password');
+      let message = error.message || 'Failed to update password';
+      console.log(error.message)
+      if (message.toLowerCase().includes('incorrect')) {
+        message = 'The current password you entered is incorrect.';
+      } else if (message.toLowerCase().includes('weak')) {
+        message = 'The new password is too weak.';
+      } else if (message.toLowerCase().includes('server')) {
+        message = 'Server error. Please try again later.';
+      }
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }

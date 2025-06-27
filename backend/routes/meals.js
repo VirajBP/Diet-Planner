@@ -143,16 +143,22 @@ router.get('/suggestions', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     const tags = req.query.tags ? req.query.tags.split(',') : [];
+    const customIngredients = req.query.customIngredients ? req.query.customIngredients.split(',').map(i => i.trim().toLowerCase()) : null;
     let query = {};
     if (tags.length > 0) {
       query.tags = { $all: tags };
     }
     let meals = await PredefinedMeal.find(query);
+    // Filter by customIngredients if provided
+    if (customIngredients && customIngredients.length > 0) {
+      meals = meals.filter(meal =>
+        meal.ingredients.some(ing => customIngredients.includes(ing.toLowerCase()))
+      );
+    }
     // Exclude meals with ["fat", "spicy", "oily"] if overweight
     if (user.profile && user.profile.weight - user.profile.targetWeight > 5) {
       meals = meals.filter(meal => !meal.tags.some(tag => ["fat", "spicy", "oily"].includes(tag)));
     }
-    // Structured format
     const suggestions = meals.map(meal => {
       const unit = meal.units[0];
       return {
@@ -161,7 +167,8 @@ router.get('/suggestions', auth, async (req, res) => {
         tags: meal.tags,
         ingredients: meal.ingredients,
         units: Array.isArray(meal.units) ? meal.units : [],
-        imageUrl: meal.imageUrl
+        imageUrl: meal.imageUrl,
+        recipe: meal.recipe
       };
     });
     res.json(Array.isArray(suggestions) ? suggestions : []);
@@ -194,7 +201,8 @@ router.get('/premium', auth, async (req, res) => {
         unit: unit.unit,
         calories: unit.calories,
         tags: meal.tags,
-        imageUrl: meal.imageUrl
+        imageUrl: meal.imageUrl,
+        recipe: meal.recipe
       };
     });
     res.json(suggestions);
@@ -256,6 +264,37 @@ router.get('/predefined/:id', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Get predefined meal error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /meals/predefined?mealType=breakfast&limit=5&offset=0&ingredient=rice
+router.get('/predefined', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const { mealType, limit = 5, offset = 0, ingredient } = req.query;
+    const query = {};
+    if (mealType) {
+      query.category = mealType;
+    }
+    // Free users: only show free meals
+    if (!user.isPremium) {
+      query.isPremium = false;
+    }
+    // Premium users: can search by ingredient
+    if (user.isPremium && ingredient) {
+      query.ingredients = { $regex: ingredient, $options: 'i' };
+    }
+    const total = await PredefinedMeal.countDocuments(query);
+    const meals = await PredefinedMeal.find(query)
+      .skip(Number(offset))
+      .limit(Number(limit));
+    res.json({
+      total,
+      meals
+    });
+  } catch (error) {
+    console.error('Get predefined meals error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

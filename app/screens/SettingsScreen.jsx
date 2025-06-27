@@ -2,13 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
-  Alert,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import PasswordUpdateModal from '../components/PasswordUpdateModal';
 import { useAuth } from '../context/AuthContext';
@@ -94,17 +94,22 @@ const SettingsScreen = () => {
         {
           label: 'Help Center',
           icon: 'information-circle-outline',
-          onPress: () => Alert.alert('Coming Soon', 'This feature will be available soon!'),
+          onPress: () => navigation.navigate('HelpCenter'),
         },
         {
           label: 'Contact Us',
           icon: 'mail-outline',
-          onPress: () => Alert.alert('Coming Soon', 'This feature will be available soon!'),
+          onPress: () => navigation.navigate('ContactUs'),
+        },
+        {
+          label: 'About Us',
+          icon: 'people-outline',
+          onPress: () => navigation.navigate('AboutUs'),
         },
         {
           label: 'Privacy Policy',
           icon: 'shield-outline',
-          onPress: () => Alert.alert('Coming Soon', 'This feature will be available soon!'),
+          onPress: () => navigation.navigate('PrivacyPolicy'),
         },
       ],
     },

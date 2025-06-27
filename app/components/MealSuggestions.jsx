@@ -168,7 +168,13 @@ const MealSuggestions = () => {
     setLoading(true);
     try {
       const response = await mongodbService.getMealSuggestions(customIngredients);
-      setSuggestions(response.suggestions || []);
+      // Group by meal type (category) and pick one per type
+      const grouped = {};
+      (response.suggestions || []).forEach(meal => {
+        const type = meal.category || 'other';
+        if (!grouped[type]) grouped[type] = meal;
+      });
+      setSuggestions(Object.values(grouped));
     } catch (error) {
       console.error('Error getting meal suggestions:', error);
       Alert.alert('Error', 'Failed to get meal suggestions. Please try again.');
@@ -180,6 +186,9 @@ const MealSuggestions = () => {
   return (
     <ScrollView style={styles.container}>
       <Text style={[styles.heading, { color: paperTheme.colors.text }]}>Meal Suggestions</Text>
+      <Text style={{ color: paperTheme.colors.primary, textAlign: 'center', marginBottom: 8 }}>
+        Eat only 1 from each meal type.
+      </Text>
 
       <Card style={[styles.weightCard, { backgroundColor: paperTheme.colors.surface }]}>
         <View style={styles.weightContainer}>

@@ -2,14 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import CircularProgress from 'react-native-circular-progress-indicator';
@@ -52,7 +51,6 @@ const WaterTrackerScreen = () => {
   const [loading, setLoading] = useState(true);
   const [glassSize, setGlassSize] = useState(user?.isPremium ? 250 : 250); // Default 250ml for all users
   const [customGlassSize, setCustomGlassSize] = useState(250);
-  const [showGlassSizeModal, setShowGlassSizeModal] = useState(false);
   const [todayTotal, setTodayTotal] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(WATER_GOAL);
   const [monthlyLogs, setMonthlyLogs] = useState([]);
@@ -98,10 +96,14 @@ const WaterTrackerScreen = () => {
 
   const addWaterLog = async () => {
     try {
-      let amount = glassSize;
+      let amount = 250;
+      if (user?.isPremium && customGlassSize > 0) {
+        amount = customGlassSize;
+      }
       if (!user?.isPremium) {
-        amount = 250; // Always use 250ml for free users
         setGlassSize(250);
+      } else {
+        setGlassSize(amount);
       }
       const newLog = await mongodbService.addWaterLog({ amount });
       const updatedLogs = [...waterLogs, newLog];
@@ -229,13 +231,51 @@ const WaterTrackerScreen = () => {
           </TouchableOpacity>
           
         </View>
-        <TouchableOpacity
-            style={[styles.waterActionButton, styles.customizeGlassButton, { backgroundColor: customColors.card, borderColor: customColors.primary, borderWidth: 1 }]}
-            onPress={() => setShowGlassSizeModal(true)}
-          >
-            <Ionicons name="options-outline" size={20} color={customColors.primary} />
-            <Text style={[styles.waterActionButtonText, { color: customColors.primary }]}>Customize Glass Size</Text>
-          </TouchableOpacity>
+        <View style={{ marginBottom: 20, alignItems: 'center', width: '100%' }}>
+          <View style={{
+            backgroundColor: customColors.card,
+            borderRadius: 16,
+            padding: 16,
+            width: '90%',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 8,
+            elevation: 2,
+            alignItems: 'center',
+            marginBottom: 8
+          }}>
+            <Text style={{ fontSize: 16, color: customColors.primary, marginBottom: 8, fontWeight: 'bold' }}>Glass Size (ml)</Text>
+            <TextInput
+              style={{
+                backgroundColor: isDark ? '#232323' : '#F5F5F5',
+                color: customColors.text,
+                borderColor: customColors.primary,
+                borderWidth: 1.5,
+                borderRadius: 10,
+                minWidth: 120,
+                textAlign: 'center',
+                fontSize: 20,
+                paddingVertical: 10,
+                paddingHorizontal: 16,
+                marginBottom: 0,
+                fontWeight: '600',
+                letterSpacing: 1
+              }}
+              value={customGlassSize.toString()}
+              onChangeText={(text) => {
+                // Allow only numbers
+                const val = text.replace(/[^0-9]/g, '');
+                setCustomGlassSize(val ? parseInt(val) : '');
+              }}
+              keyboardType="numeric"
+              placeholder="Enter glass size in ml"
+              placeholderTextColor={customColors.text + '80'}
+              editable={true}
+              maxLength={4}
+            />
+          </View>
+        </View>
         {renderPremiumFeatures()}
 
         <View style={styles.progressContainer}>
@@ -253,66 +293,8 @@ const WaterTrackerScreen = () => {
           />
         </View>
 
-        <Modal
-          visible={showGlassSizeModal}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowGlassSizeModal(false)}
-        >
-          <View style={[styles.modalContainer, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-            <View style={[styles.modalContent, { 
-              backgroundColor: isDark ? '#1A1A1A' : customColors.surface,
-              borderColor: customColors.border,
-              borderWidth: 1,
-            }]}>
-              <Text style={[styles.modalTitle, { color: customColors.text }]}>
-                Customize Glass Size
-              </Text>
-              <TextInput
-                style={[styles.input, { 
-                  backgroundColor: isDark ? '#2C2C2E' : customColors.background,
-                  color: customColors.text,
-                  borderColor: customColors.border,
-                  borderRadius: 8,
-                  marginBottom: 20,
-                }]}
-                value={customGlassSize.toString()}
-                onChangeText={(text) => setCustomGlassSize(parseInt(text) || 0)}
-                keyboardType="numeric"
-                placeholder="Enter glass size in ml"
-                placeholderTextColor={customColors.text + '80'}
-              />
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[styles.modalButton, { 
-                    backgroundColor: isDark ? '#2C2C2E' : customColors.surface,
-                    borderColor: customColors.border,
-                    borderWidth: 1,
-                    marginRight: 8,
-                  }]}
-                  onPress={() => setShowGlassSizeModal(false)}
-                >
-                  <Text style={[styles.modalButtonText, { color: customColors.text }]}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, { 
-                    backgroundColor: customColors.primary,
-                    marginLeft: 8,
-                  }]}
-                  onPress={() => {
-                    setGlassSize(customGlassSize);
-                    setShowGlassSizeModal(false);
-                  }}
-                >
-                  <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-        
         {monthlyLogs.length > 0 && (
-          <Card style={styles.logsCard}>
+          <Card style={[styles.logsCard, {backgroundColor: customColors.background}]}>
             <Text style={[styles.sectionTitle, { color: customColors.text }]}>Monthly Water Intake</Text>
             <LineChart
               data={getMonthlyChartData()}
@@ -329,11 +311,12 @@ const WaterTrackerScreen = () => {
               }}
               bezier
               style={{ marginVertical: 8, borderRadius: 16 }}
+              formatXLabel={(value, index) => (parseInt(value) % 3 === 1 ? value : '')}
             />
           </Card>
         )}
 
-        <Card style={styles.logsCard}>
+        <Card style={[styles.logsCard, {backgroundColor: customColors.background}]}>
           <Text style={[styles.sectionTitle, { color: customColors.text }]}>
             Today's Logs
           </Text>
@@ -346,6 +329,7 @@ const WaterTrackerScreen = () => {
           )}
         </Card>
       </ScrollView>
+
     </SafeAreaView>
   );
 };
@@ -491,52 +475,17 @@ const styles = StyleSheet.create({
   },
   addGlassButton: {},
   removeGlassButton: {},
-  customizeGlassButton: {},
   waterActionButtonText: {
     color: 'white',
     marginLeft: 8,
     fontWeight: 'bold',
     fontSize: 16,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    width: '100%',
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   input: {
     width: '100%',
     height: 50,
     paddingHorizontal: 15,
     fontSize: 16,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  modalButton: {
-    flex: 1,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

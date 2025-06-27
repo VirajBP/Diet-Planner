@@ -1,19 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    LayoutAnimation,
-    Platform,
-    SectionList,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    UIManager,
-    View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  LayoutAnimation,
+  Platform,
+  SectionList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View
 } from 'react-native';
 import { SafeAreaView as SafeAreaViewRN } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
@@ -52,6 +52,23 @@ const FRESH_CALM_DARK = {
   error: '#FF5252',
 };
 
+const TOGGLE_OPTIONS = [
+  { key: 'individual', label: 'Individual Meals' },
+  { key: 'packages', label: 'Meal Packages' },
+];
+
+const MEAL_TYPE_OPTIONS = [
+  { label: 'Breakfast', value: 'breakfast' },
+  { label: 'Lunch', value: 'lunch' },
+  { label: 'Dinner', value: 'dinner' },
+  { label: 'Snack', value: 'snack' },
+];
+
+function calculatePackageTotalCalories(pkg) {
+  if (!pkg || !pkg.meals) return 0;
+  return pkg.meals.reduce((sum, entry) => sum + (entry.scaledCalories || entry.originalCalories || 0), 0);
+}
+
 const MealSuggestionsScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const { user } = useAuth();
@@ -61,6 +78,9 @@ const MealSuggestionsScreen = ({ navigation }) => {
   const [unitSelections, setUnitSelections] = useState({});
   const [expanded, setExpanded] = useState({});
   const [recipeExpanded, setRecipeExpanded] = useState({});
+  const [mealPackages, setMealPackages] = useState([]);
+  const [toggle, setToggle] = useState('individual');
+  const [selectedMealType, setSelectedMealType] = useState('breakfast');
   const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
@@ -86,15 +106,17 @@ const MealSuggestionsScreen = ({ navigation }) => {
   const getMealSuggestions = async () => {
     try {
       setLoading(true);
-      let response = await mongodbService.getMealSuggestions(
-        isPremiumUser ? customIngredients : null,
-        currentWeight,
-        targetWeight
-      );
-      if (isOverweight) {
-        response = response.filter(meal => !meal.tags?.some(tag => EXCLUDED_TAGS.includes(tag)));
+      let params = { mealType: selectedMealType };
+      if (isPremiumUser && customIngredients) {
+        params.ingredient = customIngredients;
       }
-      setSuggestions(response);
+      // Use the new backend endpoint for predefined meals
+      const { meals } = await mongodbService.getPredefinedMeals(params);
+      let filteredMeals = meals;
+      if (isOverweight) {
+        filteredMeals = filteredMeals.filter(meal => !meal.tags?.some(tag => EXCLUDED_TAGS.includes(tag)));
+      }
+      setSuggestions(filteredMeals);
     } catch (error) {
       console.error('Error getting meal suggestions:', error);
       Alert.alert('Error', 'Failed to get meal suggestions. Please try again.');
@@ -103,9 +125,24 @@ const MealSuggestionsScreen = ({ navigation }) => {
     }
   };
 
+  const fetchRecommendedMealPackages = async () => {
+    try {
+      setLoading(true);
+      const response = await mongodbService.api.get('/mealPackages/recommend');
+      setMealPackages(response.data);
+    } catch (error) {
+      console.error('Error fetching recommended meal packages:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    getMealSuggestions();
-  }, [isOverweight]);
+    if (toggle === 'individual') {
+      getMealSuggestions();
+    }
+    // eslint-disable-next-line
+  }, [toggle, selectedMealType, isOverweight]);
 
   const caloriesLimit = getDefaultCaloriesLimit(user);
 
@@ -201,6 +238,76 @@ const MealSuggestionsScreen = ({ navigation }) => {
     );
   };
 
+  // const renderMealPackage = (pkg, idx) => (
+  //   <View key={pkg._id || idx} style={[styles.packageCard, { backgroundColor: customColors.card, borderColor: customColors.primary }]}> 
+  //     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+  //       <Text style={[styles.packageTitle, { color: customColors.primary }]}>{pkg.title ? String(pkg.title) : 'Untitled Package'}</Text>
+  //       {pkg.tags && pkg.tags.includes('premium') && (
+  //         <Ionicons name="star" size={18} color="#FFD700" style={{ marginLeft: 8 }} />
+  //       )}
+  //     </View>
+  //     <Text style={[styles.packageCalories, { color: customColors.text }]}>Total Calories: {calculatePackageTotalCalories(pkg)}</Text>
+  //     <Text style={{ color: customColors.text, fontStyle: 'italic', marginBottom: 8 }}>
+  //       Goal: {pkg.goal ? String(pkg.goal) : 'Unknown'}
+  //     </Text>
+  //     {['breakfast', 'lunch', 'snack', 'dinner'].map(cat => (
+  //       <View key={cat} style={styles.packageSection}>
+  //         <Text style={[styles.packageSectionTitle, { color: customColors.secondary }]}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</Text>
+  //         {pkg.meals && pkg.meals.filter(m => m.category === cat).length === 0 && (
+  //           <Text style={[styles.packageMeal, { color: customColors.text, fontStyle: 'italic' }]}>No meals</Text>
+  //         )}
+  //         {pkg.meals && pkg.meals.filter(m => m.category === cat).map((m, i) => (
+  //           <Text key={i} style={[styles.packageMeal, { color: customColors.text }]}>- {m.meal?.name ? String(m.meal.name) : 'Meal'}: {m.scaledQuantity ? m.scaledQuantity.toFixed(1) : (m.originalQuantity ?? '1')} {m.unit ? String(m.unit) : ''}</Text>
+  //         ))}
+  //       </View>
+  //     ))}
+  //   </View>
+  // );
+
+  const renderToggle = () => (
+    <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 12 }}>
+      {TOGGLE_OPTIONS.map(opt => (
+        <TouchableOpacity
+          key={opt.key}
+          style={{
+            paddingVertical: 8,
+            paddingHorizontal: 18,
+            borderRadius: 20,
+            backgroundColor: toggle === opt.key ? customColors.primary : customColors.surface,
+            marginHorizontal: 4,
+            borderWidth: 1,
+            borderColor: customColors.primary,
+          }}
+          onPress={() => setToggle(opt.key)}
+        >
+          <Text style={{ color: toggle === opt.key ? '#fff' : customColors.primary, fontWeight: 'bold' }}>{opt.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderMealTypeSelector = () => (
+    <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 12 }}>
+      {MEAL_TYPE_OPTIONS.map(type => (
+        <TouchableOpacity
+          key={type.value}
+          style={{
+            paddingVertical: 8,
+            paddingHorizontal: 18,
+            borderRadius: 20,
+            backgroundColor: selectedMealType === type.value ? customColors.primary : customColors.surface,
+            marginHorizontal: 4,
+            borderWidth: 1,
+            borderColor: customColors.primary,
+          }}
+          onPress={() => setSelectedMealType(type.value)}
+        >
+          <Text style={{ color: selectedMealType === type.value ? '#fff' : customColors.primary, fontWeight: 'bold' }}>{type.label}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
   if (loading) {
     return (
       <SafeAreaViewRN style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
@@ -220,115 +327,130 @@ const MealSuggestionsScreen = ({ navigation }) => {
 
   return (
     <SafeAreaViewRN style={[styles.container, { backgroundColor: customColors.background }]} edges={['top']}>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={[styles.sectionHeader, { color: customColors.text }]}>{title}</Text>
-        )}
-        renderItem={({ item, section }) => {
-          const meal = item;
-          const mealId = meal.id;
-          const availableUnits = meal.units.filter(u => ALLOWED_UNITS.includes(u.unit));
-          const selectedUnit = unitSelections[mealId] || (availableUnits[0]?.unit || 'plate');
-          const { qty, totalCalories } = getRecommendedQuantity(meal, selectedUnit, section.title);
-          return (
-            <View style={[styles.mealCard, { backgroundColor: customColors.card }]}>
-              {meal.imageUrl ? (
-                <Image source={{ uri: meal.imageUrl }} style={styles.image} resizeMode="cover" />
-              ) : (
-                <View style={[styles.image, { backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' }]}>
-                  <Ionicons name="fast-food-outline" size={40} color="#bbb" />
-                </View>
-              )}
-              <Text style={[styles.mealName, { color: customColors.text }]}>{meal.name}</Text>
-              
-              <View style={styles.tagsRow}>
-                {meal.tags?.map(tag => (
-                  <View key={tag} style={[styles.tag, { backgroundColor: customColors.primary + '33' }]}>
-                    <Text style={[styles.tagText, { color: customColors.primary }]}>{tag}</Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Nutrition Information */}
-              {renderNutritionInfo(meal, selectedUnit)}
-
-              {/* Ingredients Section */}
-              <TouchableOpacity onPress={() => handleToggleExpand(mealId)} style={styles.ingredientToggle}>
-                <Text style={[styles.ingredientToggleText, { color: customColors.primary }]}>Ingredients</Text>
-                <Ionicons name={expanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={customColors.primary} />
-              </TouchableOpacity>
-              {expanded[mealId] && (
-                <View style={styles.ingredientList}>
-                  {meal.ingredients?.map((ing, idx) => (
-                    <Text key={idx} style={[styles.ingredient, { color: customColors.text }]}>{ing}</Text>
-                  ))}
-                </View>
-              )}
-
-              {/* Recipe Section */}
-              <TouchableOpacity onPress={() => handleToggleRecipe(mealId)} style={styles.recipeToggle}>
-                <Text style={[styles.recipeToggleText, { color: customColors.primary }]}>Recipe</Text>
-                <Ionicons name={recipeExpanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={customColors.primary} />
-              </TouchableOpacity>
-              {recipeExpanded[mealId] && renderRecipe(meal)}
-
-              <View style={styles.unitRow}>
-                <Text style={[styles.unitLabel, { color: customColors.text }]}>Unit:</Text>
-                <View style={styles.unitDropdown}>
-                  {availableUnits.map(u => (
-                    <TouchableOpacity
-                      key={u.unit}
-                      style={[styles.unitOption, selectedUnit === u.unit && styles.unitOptionSelected, selectedUnit === u.unit && { backgroundColor: customColors.primary }]}
-                      onPress={() => handleUnitChange(mealId, u.unit)}
-                    >
-                      <Text style={[selectedUnit === u.unit ? styles.unitTextSelected : styles.unitText, { color: selectedUnit === u.unit ? '#fff' : customColors.text }]}>{u.unit}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-              <Text style={[styles.recommendation, { color: customColors.text }]}>
-                Recommended: Eat <Text style={[styles.bold, { color: customColors.primary }]}>{qty}</Text> {selectedUnit} — <Text style={[styles.bold, { color: customColors.primary }]}>{totalCalories}</Text> calories
-              </Text>
-            </View>
-          );
-        }}
-        ListHeaderComponent={
-          <>
-            <View style={[styles.header, { backgroundColor: customColors.background }]}>
-              <TouchableOpacity 
-                style={styles.backButton}
-                onPress={() => navigation.goBack()}
-              >
-                <Ionicons name="arrow-back" size={24} color={customColors.text} />
-              </TouchableOpacity>
-              <Text style={[styles.heading, { color: customColors.text }]}>Meal Suggestions</Text>
-            </View>
-            {isPremiumUser && (
-              <View style={[styles.premiumInputContainer, { backgroundColor: customColors.card }]}>
-                <Text style={[styles.premiumLabel, { color: customColors.text }]}>Custom Ingredients (Premium)</Text>
+      {/* Header */}
+      <View style={[styles.header, { backgroundColor: customColors.surface, borderBottomColor: customColors.border }]}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color={customColors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.heading, { color: customColors.text }]}>Meal Suggestions</Text>
+        <View style={{ width: 24 }} /> {/* Spacer for centering */}
+      </View>
+      {renderToggle()}
+      {toggle === 'packages' ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }}>
+          <Text style={[styles.noPackagesText, {color:customColors.text, fontSize:16}]}>Meal Packages feature is in development. Please use Individual Suggestions for now.</Text>
+        </View>
+      ) : (
+        <View style={{ flex: 1 }}>
+          {renderMealTypeSelector()}
+          <SectionList
+            ListHeaderComponent={
+              <View style={[styles.premiumInputContainer, { backgroundColor: customColors.surface, borderColor: customColors.primary, borderWidth: 1 }]}> 
+                <Text style={[styles.premiumLabel, { color: customColors.primary }]}>Enter custom ingredients (comma separated):</Text>
                 <TextInput
-                  style={[styles.premiumInput, { color: customColors.text, borderColor: customColors.border }]}
+                  style={[styles.premiumInput, { color: customColors.text, borderColor: customColors.primary }]}
+                  placeholder="e.g. chicken, rice, broccoli"
+                  placeholderTextColor={customColors.text + '80'}
                   value={customIngredients}
-                  onChangeText={setCustomIngredients}
-                  placeholder="Enter ingredients you have..."
-                  placeholderTextColor={customColors.text + '60'}
+                  onChangeText={text => {
+                    if (!isPremiumUser) {
+                      Alert.alert('Premium Feature', 'Custom ingredient search is only for premium users.');
+                      return;
+                    }
+                    setCustomIngredients(text);
+                  }}
+                  // editable={isPremiumUser}
                   multiline
                 />
                 <TouchableOpacity
-                  style={[styles.refreshButton, { backgroundColor: customColors.primary }]}
-                  onPress={getMealSuggestions}
+                  style={[styles.refreshButton, { backgroundColor: customColors.primary, marginTop: 4 }]}
+                  onPress={() => getMealSuggestions()}
                 >
-                  <Text style={styles.refreshButtonText}>Refresh Suggestions</Text>
+                  <Text style={styles.refreshButtonText}>Search Meals</Text>
                 </TouchableOpacity>
               </View>
+            }
+            sections={[{ title: selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1), data: suggestions }]}
+            keyExtractor={(item) => item._id || item.id}
+            renderSectionHeader={({ section: { title } }) => (
+              <Text style={[styles.sectionHeader, { color: customColors.text }]}>{title}</Text>
             )}
-          </>
-        }
-        stickySectionHeadersEnabled={false}
-        contentContainerStyle={styles.listContainer}
-      />
+            renderItem={({ item, section }) => {
+              const meal = item;
+              const mealId = meal._id || meal.id;
+              const availableUnits = meal.units.filter(u => ALLOWED_UNITS.includes(u.unit));
+              const selectedUnit = unitSelections[mealId] || (availableUnits[0]?.unit || 'plate');
+              const { qty, totalCalories } = getRecommendedQuantity(meal, selectedUnit, section.title);
+              return (
+                <View style={[styles.mealCard, { backgroundColor: customColors.card }]}>
+                  {meal.imageUrl ? (
+                    <Image source={{ uri: meal.imageUrl }} style={styles.image} resizeMode="cover" />
+                  ) : (
+                    <View style={[styles.image, { backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' }]}>
+                      <Ionicons name="fast-food-outline" size={40} color="#bbb" />
+                    </View>
+                  )}
+                  <Text style={[styles.mealName, { color: customColors.text }]}>{meal.name}</Text>
+                  
+                  <View style={styles.tagsRow}>
+                    {meal.tags?.map(tag => (
+                      <View key={tag} style={[styles.tag, { backgroundColor: customColors.primary + '33' }]}>
+                        <Text style={[styles.tagText, { color: customColors.primary }]}>{tag}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Nutrition Information */}
+                  {renderNutritionInfo(meal, selectedUnit)}
+
+                  {/* Ingredients Section */}
+                  <TouchableOpacity onPress={() => handleToggleExpand(mealId)} style={styles.ingredientToggle}>
+                    <Text style={[styles.ingredientToggleText, { color: customColors.primary }]}>Ingredients</Text>
+                    <Ionicons name={expanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={customColors.primary} />
+                  </TouchableOpacity>
+                  {expanded[mealId] && (
+                    <View style={styles.ingredientList}>
+                      {meal.ingredients?.map((ing, idx) => (
+                        <Text key={idx} style={[styles.ingredient, { color: customColors.text }]}>{ing}</Text>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Recipe Section */}
+                  <TouchableOpacity onPress={() => handleToggleRecipe(mealId)} style={styles.recipeToggle}>
+                    <Text style={[styles.recipeToggleText, { color: customColors.primary }]}>Recipe</Text>
+                    <Ionicons name={recipeExpanded[mealId] ? 'chevron-up' : 'chevron-down'} size={18} color={customColors.primary} />
+                  </TouchableOpacity>
+                  {recipeExpanded[mealId] && renderRecipe(meal)}
+
+                  <View style={styles.unitRow}>
+                    <Text style={[styles.unitLabel, { color: customColors.text }]}>Unit:</Text>
+                    <View style={styles.unitDropdown}>
+                      {availableUnits.map(u => (
+                        <TouchableOpacity
+                          key={u.unit}
+                          style={[styles.unitOption, selectedUnit === u.unit && styles.unitOptionSelected, selectedUnit === u.unit && { backgroundColor: customColors.primary }]}
+                          onPress={() => handleUnitChange(mealId, u.unit)}
+                        >
+                          <Text style={[selectedUnit === u.unit ? styles.unitTextSelected : styles.unitText, { color: selectedUnit === u.unit ? '#fff' : customColors.text }]}>{u.unit}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                  <Text style={[styles.recommendation, { color: customColors.text }]}>
+                    Recommended: Eat <Text style={[styles.bold, { color: customColors.primary }]}>{qty}</Text> {selectedUnit} — <Text style={[styles.bold, { color: customColors.primary }]}>{totalCalories}</Text> calories
+                  </Text>
+                </View>
+              );
+            }}
+            stickySectionHeadersEnabled={false}
+            contentContainerStyle={styles.listContainer}
+          />
+        </View>
+      )}
     </SafeAreaViewRN>
   );
 };
@@ -574,6 +696,54 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: 'bold',
+  },
+  packagesContainer: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  packagesHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  packageCard: {
+    marginBottom: 12,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+  },
+  packageTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  packageCalories: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  packageSection: {
+    marginBottom: 8,
+  },
+  packageSectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  packageMeal: {
+    fontSize: 14,
+  },
+  noPackagesText: {
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 8,
   },
 });
 
