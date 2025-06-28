@@ -4,8 +4,8 @@ import { Platform } from 'react-native';
 const ENV = {
   dev: {
     apiUrl: Platform.select({
-      ios: 'http://localhost:5000/api',
-      android: 'http://10.0.2.2:5000/api', // Default Android emulator localhost
+      ios: 'https://nutripulse-aotv.onrender.com/api',
+      android: 'https://nutripulse-aotv.onrender.com/api', // Default Android emulator localhost
     }),
     enableUpdates: true, // Enable updates in development
     bundlerHost: Platform.select({
@@ -18,7 +18,7 @@ const ENV = {
     enableUpdates: true,
   },
   prod: {
-    apiUrl: 'https://your-production-backend.onrender.com/api', // Replace with your production backend URL
+    apiUrl: 'https://nutripulse-aotv.onrender.com/api', // Replace with your production backend URL
     enableUpdates: true,
   },
 };

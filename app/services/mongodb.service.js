@@ -7,32 +7,7 @@ import getEnvVars from '../config/environment';
 class MongoDBService {
   constructor() {
     const env = getEnvVars();
-    
-    // Get the API URL from environment config
     this.BASE_URL = env.apiUrl;
-    
-    if (__DEV__) {
-      // For physical Android devices in development
-      if (Platform.OS === 'android' && !Platform.isTV) {
-        // Get the local IP address for Android physical devices
-        let debuggerHost = Constants.manifest?.debuggerHost || Constants.expoConfig?.hostUri;
-        console.log('Debug host information:', { 
-          manifestDebuggerHost: Constants.manifest?.debuggerHost,
-          expoConfigHostUri: Constants.expoConfig?.hostUri,
-          debuggerHost
-        });
-        
-        if (debuggerHost) {
-          debuggerHost = debuggerHost.split(':').shift();
-          this.BASE_URL = `http://${debuggerHost}:5000/api`;
-          console.log('Development BASE_URL set to:', this.BASE_URL);
-        } else {
-          console.warn('Could not determine debug host. Please ensure Metro bundler is running.');
-          // Fallback to localhost - though this likely won't work on physical devices
-          this.BASE_URL = 'http://localhost:5000/api';
-        }
-      }
-    }
 
     console.log('Environment details:', {
       platform: Platform.OS,
