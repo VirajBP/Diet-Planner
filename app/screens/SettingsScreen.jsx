@@ -118,10 +118,7 @@ const SettingsScreen = () => {
   const handleLogout = async () => {
     try {
       await signOut();
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Auth' }],
-      });
+      // Navigation will happen automatically based on authentication state
     } catch (error) {
       console.error('Logout error:', error);
       Alert.alert('Error', 'Failed to logout. Please try again.');

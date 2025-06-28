@@ -24,7 +24,9 @@ router.post('/register', validateRegistration, async (req, res) => {
     user = new User({
       email: email.toLowerCase(),
       password,
-      isPremium: false,
+      isPremium: true,
+      premiumTrialStartDate: new Date(),
+      premiumTrialUsed: false,
       profile: {
         ...profile,
         name: profile.name.trim(),
@@ -61,7 +63,9 @@ router.post('/register', validateRegistration, async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        profile: user.profile
+        createdAt: user.createdAt,
+        profile: user.profile,
+        isPremium: user.isPremium
       }
     });
   } catch (error) {
@@ -126,6 +130,7 @@ router.post('/login', async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
+        createdAt: user.createdAt,
         profile: user.profile,
         isPremium: user.isPremium
       }
@@ -149,6 +154,7 @@ router.get('/profile', auth, async (req, res) => {
       id: user._id,
       email: user.email,
       isPremium: user.isPremium,
+      createdAt: user.createdAt,
       profile: user.profile
     });
   } catch (error) {
@@ -230,6 +236,7 @@ router.put('/profile', auth, async (req, res) => {
       id: user._id,
       email: user.email,
       isPremium: user.isPremium,
+      createdAt: user.createdAt,
       profile: user.profile
     });
   } catch (error) {

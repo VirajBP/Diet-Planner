@@ -5,10 +5,14 @@ import { setStatusBarBackgroundColor, setStatusBarStyle } from 'expo-status-bar'
 import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { useTheme as usePaperTheme } from 'react-native-paper';
+import { useAuth } from '../context/AuthContext';
+import { useOnboarding } from '../context/OnboardingContext';
 
 // Import screens
+import SplashScreen from '../components/SplashScreen';
 import AboutUsScreen from '../screens/AboutUsScreen';
 import CalorieCalculatorScreen from '../screens/CalorieCalculatorScreen';
+import ChatbotScreen from '../screens/ChatbotScreen';
 import ContactUsScreen from '../screens/ContactUsScreen';
 import HelpCenterScreen from '../screens/HelpCenterScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -26,7 +30,6 @@ import SettingsScreen from '../screens/SettingsScreen';
 import WaterTrackerScreen from '../screens/WaterTrackerScreen';
 import WeightLogScreen from '../screens/WeightLogScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
-import ChatbotScreen from '../screens/ChatbotScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -182,12 +185,62 @@ function RootNavigator() {
   const isDark = paperTheme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const colorScheme = useColorScheme();
+  const { user, loading: authLoading } = useAuth();
+  const { hasSeenOnboarding, loading: onboardingLoading } = useOnboarding();
 
   useEffect(() => {
     // Set status bar style and background color dynamically
     setStatusBarStyle(isDark ? 'light' : 'dark');
     setStatusBarBackgroundColor(isDark ? '#121212' : '#FDFEFE', true);
   }, [isDark, colorScheme]);
+
+  // Show splash screen while checking authentication and onboarding status
+  if (authLoading || onboardingLoading) {
+    return <SplashScreen />;
+  }
+
+  // Render the appropriate navigator based on state
+  if (!hasSeenOnboarding) {
+    return (
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          headerStyle: {
+            backgroundColor: customColors.card,
+            borderBottomWidth: 1,
+            borderBottomColor: customColors.border,
+          },
+          headerTintColor: customColors.text,
+          contentStyle: {
+            backgroundColor: customColors.background
+          },
+        }}
+      >
+        <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    );
+  }
+
+  if (user) {
+    return (
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          headerStyle: {
+            backgroundColor: customColors.card,
+            borderBottomWidth: 1,
+            borderBottomColor: customColors.border,
+          },
+          headerTintColor: customColors.text,
+          contentStyle: {
+            backgroundColor: customColors.background
+          },
+        }}
+      >
+        <Stack.Screen name="Main" component={MainStack} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    );
+  }
 
   return (
     <Stack.Navigator
@@ -204,9 +257,7 @@ function RootNavigator() {
         },
       }}
     >
-      <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Auth" component={AuthStack} options={{ headerShown: false }} />
-      <Stack.Screen name="Main" component={MainStack} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

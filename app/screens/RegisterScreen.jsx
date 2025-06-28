@@ -146,10 +146,7 @@ const RegisterScreen = ({ navigation }) => {
       };
 
       await signUp(userData);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+      // Navigation will happen automatically based on authentication state
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {

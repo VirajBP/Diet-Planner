@@ -476,10 +476,10 @@ const HomeScreen = () => {
         <View style={styles.quickActions}>
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: customColors.primary }]}
-            onPress={() => navigation.navigate('Water')}
+            onPress={() => navigation.navigate('Chatbot')}
           >
-            <Ionicons name="water" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Log Water</Text>
+            <Ionicons name="person" size={24} color="white" />
+            <Text style={styles.actionButtonText}>Chatbot</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -491,11 +491,11 @@ const HomeScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: customColors.primary }]}
-            onPress={() => navigation.navigate('WeightLog')}
+            style={[styles.actionButton, { backgroundColor: customColors.primary, paddingLeft:25 }]}
+            onPress={() => navigation.navigate('CalorieCalculator')}
           >
             <Ionicons name="scale" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Log Weight</Text>
+            <Text style={styles.actionButtonText}>Calorie Check</Text>
           </TouchableOpacity>
         </View>
 
@@ -523,15 +523,9 @@ const HomeScreen = () => {
               onPress={() => navigation.navigate('MealSuggestions')}
             >
               <Ionicons name="bulb-outline" size={24} color={customColors.primary} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>Custom Meal Suggestions</Text>
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>Custom Ingredients Meal Search</Text>
             </TouchableOpacity>
-                <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
-              onPress={() => navigation.navigate('Chatbot')}
-            >
-              <Ionicons name="person" size={24} color={customColors.primary} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>Personal ChatBot</Text>
-            </TouchableOpacity>
+                
           {/* </ScrollView> */}
           </View>
         </View>

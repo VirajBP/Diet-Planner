@@ -51,7 +51,10 @@ router.post('/register', async (req, res) => {
       preferences: {
         allergies: allergies || [],
         notifications: notificationsEnabled ?? true,
-      }
+      },
+      isPremium: true,
+      premiumTrialStartDate: new Date(),
+      premiumTrialUsed: false,
     });
     
 
@@ -84,6 +87,8 @@ router.post('/register', async (req, res) => {
         allergies: user.allergies,
         notificationsEnabled: user.notificationsEnabled,
         isPremium: user.isPremium,
+        premiumTrialStartDate: user.premiumTrialStartDate,
+        premiumTrialUsed: user.premiumTrialUsed,
       },
     });
   } catch (error) {
@@ -107,6 +112,18 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    // Check and update trial status
+    if (user.premiumTrialStartDate && !user.premiumTrialUsed) {
+      const now = new Date();
+      const trialStart = new Date(user.premiumTrialStartDate);
+      const diffDays = Math.floor((now - trialStart) / (1000 * 60 * 60 * 24));
+      if (diffDays >= 30) {
+        user.isPremium = false;
+        user.premiumTrialUsed = true;
+        await user.save();
+      }
     }
 
     // Create token
@@ -134,6 +151,8 @@ router.post('/login', async (req, res) => {
         allergies: user.allergies,
         notificationsEnabled: user.notificationsEnabled,
         isPremium: user.isPremium,
+        premiumTrialStartDate: user.premiumTrialStartDate,
+        premiumTrialUsed: user.premiumTrialUsed,
       },
     });
   } catch (error) {

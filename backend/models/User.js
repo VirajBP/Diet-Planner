@@ -124,6 +124,8 @@ const userSchema = new mongoose.Schema({
   premiumExpiryDate: {
     type: Date,
   },
+  premiumTrialStartDate: { type: Date },
+  premiumTrialUsed: { type: Boolean, default: false },
   createdAt: {
     type: Date,
     default: Date.now,

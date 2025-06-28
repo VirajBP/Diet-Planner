@@ -64,11 +64,7 @@ const ProfileScreen = ({ navigation }) => {
       console.log('Attempting to logout...');
       await signOut();
       console.log('Successfully logged out');
-      // Navigate to Auth stack instead of directly to Login
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Auth' }],
-      });
+      // Navigation will happen automatically based on authentication state
     } catch (error) {
       console.error('Logout error:', error);
       Alert.alert('Error', 'Failed to logout. Please try again.');
@@ -171,6 +167,24 @@ const ProfileScreen = ({ navigation }) => {
   const formatGoal = (goal) => {
     if (!goal) return 'Not set';
     return goal.charAt(0).toUpperCase() + goal.slice(1) + ' Weight';
+  };
+
+  // Helper to robustly format the user's createdAt date
+  const formatMemberSince = (createdAt) => {
+    console.log('This is the createdAt data: ', createdAt);
+    if (!createdAt) return 'Not set';
+    if (typeof createdAt === 'string' && createdAt.length >= 10 && createdAt[4] === '-' && createdAt[7] === '-') {
+      // ISO string, return YYYY-MM-DD
+      return createdAt.slice(0, 10);
+    }
+    let dateObj;
+    if (typeof createdAt === 'number') {
+      dateObj = new Date(createdAt);
+    } else {
+      dateObj = new Date(createdAt);
+    }
+    if (isNaN(dateObj.getTime())) return 'Not set';
+    return dateObj.toLocaleDateString();
   };
 
   const renderSection = (title, fields) => (
@@ -396,7 +410,7 @@ const ProfileScreen = ({ navigation }) => {
 
         {renderSection('Account Information', [
           { label: 'Email', value: formatValue(user?.email) },
-          { label: 'Member Since', value: formatValue(new Date(user?.createdAt).toLocaleDateString()) },
+          { label: 'Member Since', value: formatMemberSince(user?.createdAt) },
           { label: 'Premium Status', value: user?.isPremium ? 'Premium' : 'Free' },
         ])}
 

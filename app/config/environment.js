@@ -14,11 +14,11 @@ const ENV = {
     }),
   },
   staging: {
-    apiUrl: 'https://your-staging-server.com/api',
+    apiUrl: 'https://your-staging-backend.onrender.com/api', // Replace with your staging backend URL
     enableUpdates: true,
   },
   prod: {
-    apiUrl: 'https://your-production-server.com/api',
+    apiUrl: 'https://your-production-backend.onrender.com/api', // Replace with your production backend URL
     enableUpdates: true,
   },
 };

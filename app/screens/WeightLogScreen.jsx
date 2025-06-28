@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     flex:1,
     gap:5,
-    height:90
+    // height:90
   },
   bmisecondlevelboxes: {
     width:10

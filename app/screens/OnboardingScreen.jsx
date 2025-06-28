@@ -1,13 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-  Dimensions,
-  Image,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Button from '../components/ui/Button';
 import { useOnboarding } from '../context/OnboardingContext';
@@ -66,10 +66,7 @@ const OnboardingScreen = ({ navigation }) => {
       setCurrentStep(currentStep + 1);
     } else {
       await completeOnboarding();
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Auth' }],
-      });
+      // Navigation will happen automatically based on onboarding state
     }
   };
 
@@ -81,10 +78,7 @@ const OnboardingScreen = ({ navigation }) => {
 
   const handleSkip = async () => {
     await completeOnboarding();
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Auth' }],
-    });
+    // Navigation will happen automatically based on onboarding state
   };
 
   return (

@@ -1,19 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Image,
-  LayoutAnimation,
-  Platform,
-  SectionList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  UIManager,
-  View
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Image,
+    LayoutAnimation,
+    Platform,
+    SectionList,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    UIManager,
+    View
 } from 'react-native';
 import { SafeAreaView as SafeAreaViewRN } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
@@ -81,6 +81,9 @@ const MealSuggestionsScreen = ({ navigation }) => {
   const [mealPackages, setMealPackages] = useState([]);
   const [toggle, setToggle] = useState('individual');
   const [selectedMealType, setSelectedMealType] = useState('breakfast');
+  const [offset, setOffset] = useState(0);
+  const [limit] = useState(10); // page size
+  const [total, setTotal] = useState(0);
   const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
@@ -103,20 +106,22 @@ const MealSuggestionsScreen = ({ navigation }) => {
     };
   };
 
-  const getMealSuggestions = async () => {
+  const getMealSuggestions = async (reset = false) => {
     try {
       setLoading(true);
-      let params = { mealType: selectedMealType };
+      let params = { mealType: selectedMealType, limit, offset: reset ? 0 : offset };
       if (isPremiumUser && customIngredients) {
         params.ingredient = customIngredients;
       }
-      // Use the new backend endpoint for predefined meals
-      const { meals } = await mongodbService.getPredefinedMeals(params);
-      let filteredMeals = meals;
-      if (isOverweight) {
-        filteredMeals = filteredMeals.filter(meal => !meal.tags?.some(tag => EXCLUDED_TAGS.includes(tag)));
+      const { meals, total } = await mongodbService.getPredefinedMeals(params);
+      setTotal(total);
+      if (reset) {
+        setSuggestions(meals);
+        setOffset(meals.length);
+      } else {
+        setSuggestions(prev => [...prev, ...meals]);
+        setOffset(prev => prev + meals.length);
       }
-      setSuggestions(filteredMeals);
     } catch (error) {
       console.error('Error getting meal suggestions:', error);
       Alert.alert('Error', 'Failed to get meal suggestions. Please try again.');
@@ -139,7 +144,7 @@ const MealSuggestionsScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (toggle === 'individual') {
-      getMealSuggestions();
+      getMealSuggestions(true); // reset on filter change
     }
     // eslint-disable-next-line
   }, [toggle, selectedMealType, isOverweight]);
@@ -367,7 +372,7 @@ const MealSuggestionsScreen = ({ navigation }) => {
                 />
                 <TouchableOpacity
                   style={[styles.refreshButton, { backgroundColor: customColors.primary, marginTop: 4 }]}
-                  onPress={() => getMealSuggestions()}
+                  onPress={() => getMealSuggestions(true)}
                 >
                   <Text style={styles.refreshButtonText}>Search Meals</Text>
                 </TouchableOpacity>
@@ -449,6 +454,14 @@ const MealSuggestionsScreen = ({ navigation }) => {
             stickySectionHeadersEnabled={false}
             contentContainerStyle={styles.listContainer}
           />
+          {suggestions.length < total && (
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={() => getMealSuggestions(false)}
+            >
+              <Text style={styles.loadMoreText}>Load More</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </SafeAreaViewRN>
@@ -744,6 +757,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
     marginTop: 8,
+  },
+  loadMoreButton: {
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  loadMoreText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });
 
