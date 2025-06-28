@@ -14,7 +14,7 @@ const ENV = {
     }),
   },
   staging: {
-    apiUrl: 'https://your-staging-backend.onrender.com/api', // Replace with your staging backend URL
+    apiUrl: 'https://nutripulse-aotv.onrender.com/api', // Replace with your staging backend URL
     enableUpdates: true,
   },
   prod: {
