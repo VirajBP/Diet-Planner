@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
   Alert,
@@ -10,31 +11,53 @@ import {
 } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// import { FRESH_CALM_DARK, FRESH_CALM_LIGHT } from '../../constants/Colors';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
 
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const PREMIUM_FEATURES = [
   {
     icon: 'water',
     title: 'Water Tracker',
-    description: 'Track your daily water intake and stay hydrated',
+    description: 'Track your daily water intake with custom glass sizes and detailed analytics',
   },
   {
     icon: 'scale',
     title: 'Weight Log',
-    description: 'Monitor your weight progress with detailed graphs',
-  },
-  {
-    icon: 'cart',
-    title: 'Grocery Planner',
-    description: 'Plan your groceries based on your meal plans',
+    description: 'Monitor your weight progress with detailed graphs and history',
   },
   {
     icon: 'nutrition',
-    title: 'AI Meal Suggestions',
-    description: 'Get personalized meal suggestions based on your goals',
+    title: 'Custom Ingredient Meal Search',
+    description: 'Search for meals using your available ingredients',
+  },
+  {
+    icon: 'restaurant',
+    title: 'Access to Entire Meal Database',
+    description: 'Get access to unlimited meal suggestions and more variety',
   },
 ];
 
@@ -59,11 +82,24 @@ const FREE_FEATURES = [
     title: 'Meal Logging',
     description: 'Log and track your daily meals',
   },
+  {
+    icon: 'notifications',
+    title: 'Custom Reminders',
+    description: 'Set personalized reminders for meals and water intake',
+  },
+  {
+    icon: 'search',
+    title: 'Nutrition Search',
+    description: 'Search and find nutritional information for foods',
+  },
 ];
 
 const PremiumScreen = () => {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const navigation = useNavigation();
+  const isDark = theme.dark;
+  const customColors = isDark? FRESH_CALM_DARK:FRESH_CALM_LIGHT
 
   const handleGoPremium = async () => {
     try {
@@ -106,21 +142,21 @@ const PremiumScreen = () => {
       key={feature.title}
       style={[
         styles.featureItem,
-        { borderColor: theme.colors.border }
+        { borderColor: customColors.border }
       ]}
     >
       <View style={styles.featureIcon}>
         <Ionicons
           name={feature.icon}
           size={24}
-          color={isPremium ? theme.colors.primary : theme.colors.text}
+          color={isPremium ? customColors.primary : customColors.text}
         />
       </View>
       <View style={styles.featureContent}>
-        <Text style={[styles.featureTitle, { color: theme.colors.text }]}>
+        <Text style={[styles.featureTitle, { color: customColors.text }]}>
           {feature.title}
         </Text>
-        <Text style={[styles.featureDescription, { color: theme.colors.text }]}>
+        <Text style={[styles.featureDescription, { color: customColors.text }]}>
           {feature.description}
         </Text>
       </View>
@@ -128,22 +164,36 @@ const PremiumScreen = () => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
+      {/* Header with Back Button */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color={customColors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: customColors.text }]}>
+          Premium
+        </Text>
+        <View style={styles.placeholder} />
+      </View>
+
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>
+          <Text style={[styles.title, { color: customColors.text }]}>
             Upgrade to Premium
           </Text>
-          <Text style={[styles.subtitle, { color: theme.colors.text }]}>
+          <Text style={[styles.subtitle, { color: customColors.text }]}>
             Get access to all features and take your health journey to the next level
           </Text>
         </View>
 
         <Card style={styles.pricingCard}>
-          <Text style={[styles.price, { color: theme.colors.primary }]}>$4.99</Text>
-          <Text style={[styles.period, { color: theme.colors.text }]}>/month</Text>
+          <Text style={[styles.price, { color: customColors.primary }]}>$4.99</Text>
+          <Text style={[styles.period, { color: customColors.text }]}>/month</Text>
           <TouchableOpacity
-            style={[styles.upgradeButton, { backgroundColor: theme.colors.primary }]}
+            style={[styles.upgradeButton, { backgroundColor: customColors.primary }]}
             onPress={handleGoPremium}
           >
             <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
@@ -151,14 +201,14 @@ const PremiumScreen = () => {
         </Card>
 
         <View style={styles.featuresSection}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.sectionTitle, { color: customColors.text }]}>
             Premium Features
           </Text>
           {PREMIUM_FEATURES.map(feature => renderFeature(feature, true))}
         </View>
 
         <View style={styles.featuresSection}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
+          <Text style={[styles.sectionTitle, { color: customColors.text }]}>
             Free Features
           </Text>
           {FREE_FEATURES.map(feature => renderFeature(feature))}
@@ -171,6 +221,25 @@ const PremiumScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  placeholder: {
+    width: 40,
   },
   scrollView: {
     flex: 1,

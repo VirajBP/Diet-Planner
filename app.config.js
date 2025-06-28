@@ -25,11 +25,6 @@ export default {
   web: {
     favicon: './assets/favicon.png'
   },
-  extra: {
-    eas: {
-      projectId: 'diet-planner-app'
-    }
-  },
   updates: {
     enabled: true,
     checkAutomatically: 'ON_LOAD',
@@ -38,6 +33,11 @@ export default {
   },
   runtimeVersion: {
     policy: 'sdkVersion'
+  },
+  extra: {
+    eas: {
+      projectId: '40f4ba6f-0493-4a84-a9d5-703632207825'
+    }
   },
 
   plugins: [
