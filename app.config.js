@@ -6,9 +6,9 @@ export default {
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
   splash: {
-    image: './assets/splash-icon.png',
+    image: './assets/splashscreen_logo.png',
     resizeMode: 'contain',
-    backgroundColor: '#ffffff'
+    backgroundColor: '#2ECC71'
   },
   assetBundlePatterns: ['**/*'],
   ios: {
@@ -43,6 +43,14 @@ export default {
   plugins: [
     'expo-font',
     'expo-web-browser',
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/splashscreen_logo.png',
+        resizeMode: 'contain',
+        backgroundColor: '#2ECC71'
+      }
+    ],
     [
       'expo-media-library',
       {

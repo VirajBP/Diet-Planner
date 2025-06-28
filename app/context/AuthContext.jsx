@@ -65,9 +65,13 @@ export const AuthProvider = ({ children }) => {
           await AsyncStorage.removeItem('userToken');
           setUser(null);
           mongodbService.setToken(null);
+        } else if (error.message.includes('Backend unavailable') || error.status === 503) {
+          // For backend unavailability, keep the token but don't set user
+          // This allows the user to retry when the connection is restored
+          console.log('Backend unavailable, keeping token for retry');
+          setUser(null);
         } else {
           // For other errors (network, server issues), keep the token but don't set user
-          // This allows the user to retry when the connection is restored
           console.log('Network or server error, keeping token for retry');
           setUser(null);
         }
