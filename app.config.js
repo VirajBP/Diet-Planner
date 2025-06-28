@@ -73,13 +73,6 @@ export default {
         saveToPhotosPermission: 'Allow $(PRODUCT_NAME) to save photos.',
         isAccessMediaLocationEnabled: true
       }
-    ],
-    [
-      'react-native-razorpay',
-      {
-        android: {},
-        ios: {}
-      }
     ]
   ]
 }; 

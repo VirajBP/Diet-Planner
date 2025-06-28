@@ -10,46 +10,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// Conditional import to prevent crashes
-let RazorpayCheckout;
-try {
-  RazorpayCheckout = require('react-native-razorpay').default;
-} catch (error) {
-  console.warn('Razorpay module not available:', error);
-  RazorpayCheckout = null;
-}
-
-// Add a fallback for when Razorpay fails to load
-if (!RazorpayCheckout) {
-  console.warn('Razorpay module failed to load - payment features will be disabled');
-}
-
-// import { FRESH_CALM_DARK, FRESH_CALM_LIGHT } from '../../constants/Colors';
+import { FRESH_CALM_DARK, FRESH_CALM_LIGHT } from '../../constants/Colors';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { mongodbService } from '../services/mongodb.service';
-
-const FRESH_CALM_LIGHT = {
-  primary: '#2ECC71', // Mint Green
-  secondary: '#A3E4D7',
-  background: '#FDFEFE',
-  surface: '#FFFFFF',
-  text: '#1C1C1C',
-  card: '#FFFFFF',
-  border: '#A3E4D7',
-  error: '#FF5252',
-};
-const FRESH_CALM_DARK = {
-  primary: '#27AE60',
-  secondary: '#48C9B0',
-  background: '#121212',
-  surface: '#1E1E1E',
-  text: '#FAFAFA',
-  card: '#1E1E1E',
-  border: '#48C9B0',
-  error: '#FF5252',
-};
 
 const PREMIUM_FEATURES = [
   {
@@ -115,45 +79,11 @@ const PremiumScreen = () => {
   const customColors = isDark? FRESH_CALM_DARK:FRESH_CALM_LIGHT
 
   const handleGoPremium = async () => {
-    try {
-      // Check if Razorpay is available
-      if (!RazorpayCheckout) {
-        Alert.alert('Payment Unavailable', 'Payment service is not available at the moment. Please try again later.');
-        return;
-      }
-
-      // 1. Call backend to create order (amount in rupees)
-      const amount = 499; // Example: 499 INR for premium
-      const orderRes = await mongodbService.api.post('/payments/create-order', { amount });
-      const order = orderRes.data;
-      // 2. Open Razorpay checkout
-      const options = {
-        description: 'NutriPulse Premium Subscription',
-        currency: 'INR',
-        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID, // Use test key
-        amount: order.amount, // in paise
-        order_id: order.id,
-        name: 'NutriPulse',
-        prefill: {
-          email: user?.email || '',
-          contact: user?.profile?.phone || '',
-          name: user?.profile?.name || '',
-        },
-        theme: { color: '#2ECC71' },
-      };
-      RazorpayCheckout.open(options)
-        .then(async (data) => {
-          // Payment Success
-          Alert.alert('Success', 'Payment successful! You are now a premium user.');
-          // Optionally, refresh user profile or navigate
-        })
-        .catch((error) => {
-          // Payment Failed or Cancelled
-          Alert.alert('Payment Failed', error.description || 'Payment was not completed.');
-        });
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Could not initiate payment.');
-    }
+    Alert.alert(
+      'Premium Coming Soon!',
+      'Premium features will be available soon. Stay tuned for updates!',
+      [{ text: 'OK' }]
+    );
   };
 
   const renderFeature = (feature, isPremium = false) => (

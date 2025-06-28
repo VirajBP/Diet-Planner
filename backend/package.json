@@ -22,8 +22,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.0.3",
     "node-cron": "^3.0.3",
-    "node-fetch": "^2.7.0",
-    "razorpay": "^2.9.6"
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
