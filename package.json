@@ -64,5 +64,19 @@
     "metro-resolver": "^0.82.0",
     "react-native-svg-transformer": "^1.5.1"
   },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-razorpay",
+          "react-native-chart-kit",
+          "react-native-circular-progress-indicator",
+          "react-native-progress-circle",
+          "arg"
+        ],
+        "listUnknownPackages": false
+      }
+    }
+  },
   "private": true
 }

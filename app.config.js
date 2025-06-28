@@ -1,26 +1,39 @@
 export default {
-  name: 'diet-planner-app',
+  name: 'Diet Planner',
   slug: 'diet-planner-app',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
-  splash: {
-    image: './assets/splashscreen_logo.png',
-    resizeMode: 'contain',
-    backgroundColor: '#2ECC71'
-  },
+  // Temporarily disabled splash screen to test crash
+  // splash: {
+  //   image: './assets/splashscreen_logo.png',
+  //   resizeMode: 'contain',
+  //   backgroundColor: '#2ECC71'
+  // },
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.dietplanner.app'
+    bundleIdentifier: 'com.dietplanner.app',
+    buildNumber: '1.0.0'
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff'
+      backgroundColor: '#2ECC71'
     },
-    package: 'com.dietplanner.app'
+    package: 'com.dietplanner.app',
+    versionCode: 1,
+    permissions: [
+      'INTERNET',
+      'ACCESS_NETWORK_STATE',
+      'READ_EXTERNAL_STORAGE',
+      'WRITE_EXTERNAL_STORAGE',
+      'CAMERA',
+      'VIBRATE',
+      'WAKE_LOCK',
+      'RECEIVE_BOOT_COMPLETED'
+    ]
   },
   web: {
     favicon: './assets/favicon.png'
@@ -43,20 +56,29 @@ export default {
   plugins: [
     'expo-font',
     'expo-web-browser',
-    [
-      'expo-splash-screen',
-      {
-        image: './assets/splashscreen_logo.png',
-        resizeMode: 'contain',
-        backgroundColor: '#2ECC71'
-      }
-    ],
+    'expo-notifications',
+    // Temporarily disabled splash screen plugin to test crash
+    // [
+    //   'expo-splash-screen',
+    //   {
+    //     image: './assets/splashscreen_logo.png',
+    //     resizeMode: 'contain',
+    //     backgroundColor: '#2ECC71'
+    //   }
+    // ],
     [
       'expo-media-library',
       {
         photosPermission: 'Allow $(PRODUCT_NAME) to access your photos.',
         saveToPhotosPermission: 'Allow $(PRODUCT_NAME) to save photos.',
         isAccessMediaLocationEnabled: true
+      }
+    ],
+    [
+      'react-native-razorpay',
+      {
+        android: {},
+        ios: {}
       }
     ]
   ]
