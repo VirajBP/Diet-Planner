@@ -57,6 +57,7 @@ export default {
     'expo-font',
     'expo-web-browser',
     'expo-notifications',
+    // '@react-native-community/datetimepicker'
     // Temporarily disabled splash screen plugin to test crash
     // [
     //   'expo-splash-screen',
