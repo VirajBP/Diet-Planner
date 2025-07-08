@@ -27,12 +27,18 @@ app.use('/api/grocery-lists', require('./routes/groceryLists'));
 app.use('/api/nutrition', require('./routes/nutrition'));
 app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/chatbot', require('./routes/chatbot'));
 app.use('/api/payments', paymentsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
-  res.status(500).json({ message: err.message });
+  res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+});
+
+// Catch-all 404 for unknown API endpoints
+app.use((req, res, next) => {
+  res.status(404).json({ success: false, message: 'API endpoint not found' });
 });
 
 // Connect to MongoDB with retry logic
@@ -41,7 +47,7 @@ const connectDB = async () => {
     await mongoose.connect(config.mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      serverSelectionTimeoutMS: 30000, // Timeout after 30s
       socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
     });
     console.log('Connected to MongoDB');
@@ -66,8 +72,8 @@ mongoose.connection.on('disconnected', () => {
 });
 
 // Start server
-const server = app.listen(config.port, () => {
-  console.log(`Server is running on port ${config.port}`);
+const server = app.listen(config.port, '0.0.0.0', () => {
+  console.log(`Server is running on 0.0.0.0:${config.port}`);
 });
 
 // Handle server shutdown

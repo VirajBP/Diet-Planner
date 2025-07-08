@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { API_URL } from '../config/config';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const FRESH_CALM_LIGHT = {
@@ -25,78 +27,91 @@ const FRESH_CALM_DARK = {
   error: '#FF5252',
 };
 
-const QUESTIONS = [
-  'How do I log a meal?',
-  'What are the benefits of Premium?',
-  'How do I reset my password?',
-  'How can I contact support?',
-  'How do I calculate my calories or BMI?',
-  'How do I track water intake?',
-  'How do I log my weight?',
-  'How do I set reminders?',
-  'How do I update my profile?',
-  'How do I view my meal history?',
-  'How do I use the meal suggestions feature?',
-  'How do I upgrade to premium?',
-  'How do I use the chatbot?',
-  'How do I log out?',
-  'How do I delete my account?',
-  'How do I change app theme?',
-  'How do I get nutrition info for a meal?',
-  'How do I use the water tracker?',
-  'How do I use the weight log?',
-  'How do I contact NutriPulse support?',
+const NUTRITION_QUESTIONS = [
+  'What should I eat for breakfast?',
+  'How many calories should I eat daily?',
+  'What are good protein sources?',
+  'How to lose weight safely?',
+  'What foods help with energy?',
+  'How much water should I drink?',
+  'What are healthy snacks?',
+  'How to build muscle?',
+  'What is a balanced diet?',
+  'Foods to avoid for weight loss?',
+  'How to improve digestion?',
+  'What vitamins do I need?',
+  'How to meal prep?',
+  'Best foods for heart health?',
+  'How to read nutrition labels?',
+  'What is intermittent fasting?',
+  'How to eat more vegetables?',
+  'What are superfoods?',
+  'How to reduce sugar intake?',
+  'What is the keto diet?',
 ];
 
-const RULES = [
-  { keywords: ['log a meal'], response: "To log a meal, go to the Meals page and tap 'Add Meal'." },
-  { keywords: ['benefits of premium', 'premium'], response: "Premium unlocks all features! Go to Settings > Premium to upgrade." },
-  { keywords: ['reset my password', 'change password'], response: "You can update your password from the Settings > Account section." },
-  { keywords: ['contact support'], response: "For support, email us at support@nutripulse.com." },
-  { keywords: ['calories', 'bmi', 'calculate'], response: "Use the Calorie Calculator or BMI Calculator in the app for personalized info." },
-  { keywords: ['water intake', 'track water'], response: "Track your water intake on the Water Tracker screen." },
-  { keywords: ['log my weight', 'weight'], response: "Log your weight on the Weight Log screen to track your progress." },
-  { keywords: ['set reminders'], response: "Go to the Reminders screen to set up meal, water, or weight reminders." },
-  { keywords: ['update my profile'], response: "You can update your profile from the Settings > Account section." },
-  { keywords: ['meal history'], response: "View your meal history on the Meals page." },
-  { keywords: ['meal suggestions'], response: "Use the Meal Suggestions feature to get recommended meals based on your preferences." },
-  { keywords: ['upgrade to premium'], response: "Go to Settings > Premium to upgrade and unlock all features." },
-  { keywords: ['use the chatbot'], response: "You're using the chatbot right now! Tap a question below to get started." },
-  { keywords: ['log out'], response: "You can log out from the Settings > Account section." },
-  { keywords: ['delete my account'], response: "To delete your account, please contact support@nutripulse.com." },
-  { keywords: ['change app theme'], response: "Go to Settings > Appearance to change the app theme." },
-  { keywords: ['nutrition info'], response: "Use the Nutrition Search feature to get nutrition info for any meal." },
-  { keywords: ['use the water tracker'], response: "Track your daily water intake on the Water Tracker screen." },
-  { keywords: ['use the weight log'], response: "Log your weight and view progress on the Weight Log screen." },
-  { keywords: ['contact nutripulse support'], response: "Email us at support@nutripulse.com for any help!" },
-];
-
-const DEFAULT_RESPONSE = "Sorry, I didn't understand that. Please try asking in a different way or contact support.";
+const DEFAULT_RESPONSE = "I'm sorry, but I can only help with nutrition and diet-related questions. Please ask me about food, nutrition, health, or diet topics.";
 
 const ChatbotScreen = () => {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const isDark = theme.dark;
   const customColors = isDark? FRESH_CALM_DARK: FRESH_CALM_LIGHT
   const navigation = useNavigation();
   const [messages, setMessages] = useState([
-    { from: 'bot', text: 'Hi! I am NutriPulse Assistant. How can I help you today?' }
+    { from: 'bot', text: 'Hi! I am NutriPulse, your nutrition assistant. I can help you with diet, nutrition, and health questions. What would you like to know?' }
   ]);
+  const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const chatListRef = useRef();
 
-  const handleQuestion = (question) => {
-    const userMessage = { from: 'user', text: question };
-    const botMessage = { from: 'bot', text: getBotResponse(question) };
-    setMessages(prev => [...prev, userMessage, botMessage]);
+  const sendMessage = async (message) => {
+    if (!message.trim()) return;
+
+    const userMessage = { from: 'user', text: message };
+    setMessages(prev => [...prev, userMessage]);
+    setInputText('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/chatbot/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      let data;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error('Non-JSON response from backend:', text);
+        throw new Error(`Non-JSON response: ${text.slice(0, 100)}`);
+      }
+
+      const botMessage = { 
+        from: 'bot', 
+        text: data.success ? data.message : DEFAULT_RESPONSE 
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Chatbot error:', error);
+      const botMessage = { 
+        from: 'bot', 
+        text: 'Sorry, I\'m having trouble connecting. Please try again.' 
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const getBotResponse = (userInput) => {
-    const lower = userInput.toLowerCase();
-    for (const rule of RULES) {
-      if (rule.keywords.some(keyword => lower.includes(keyword))) {
-        return rule.response;
-      }
-    }
-    return DEFAULT_RESPONSE;
+  const handleQuestion = (question) => {
+    sendMessage(question);
   };
 
   useEffect(() => {
@@ -108,7 +123,7 @@ const ChatbotScreen = () => {
 
   const renderItem = ({ item }) => (
     <View style={[styles.messageContainer, item.from === 'user' ? [styles.userMessage, { backgroundColor: customColors.primary }] : [styles.botMessage, { backgroundColor: customColors.card }]]}>
-      <Text style={[styles.messageText, { color: customColors.text }]}>{item.text}</Text>
+      <Text style={[styles.messageText, { color: item.from === 'user' ? customColors.card : customColors.text }]}>{item.text}</Text>
     </View>
   );
 
@@ -129,14 +144,46 @@ const ChatbotScreen = () => {
         contentContainerStyle={styles.messagesList}
         onContentSizeChange={() => chatListRef.current?.scrollToEnd({ animated: true })}
       />
-      <View style={[styles.suggestionsContainer, { maxHeight: 220 }]}> {/* Reduced height */}
-        <Text style={[styles.suggestionsTitle, { color: customColors.text }]}>Choose a question (Scroll for more):</Text>
-        <ScrollView style={{ maxHeight: 180 }}>
-          {QUESTIONS.map((q, idx) => (
+      {/* Input Section */}
+      <View style={[styles.inputContainer, { backgroundColor: customColors.card, borderTopColor: customColors.border }]}>
+        <TextInput
+          style={[styles.textInput, { 
+            backgroundColor: customColors.surface, 
+            color: customColors.text,
+            borderColor: customColors.border 
+          }]}
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Ask me about nutrition..."
+          placeholderTextColor={customColors.text + '80'}
+          multiline
+          maxLength={500}
+        />
+        <TouchableOpacity
+          style={[styles.sendButton, { 
+            backgroundColor: inputText.trim() ? customColors.primary : customColors.border 
+          }]}
+          onPress={() => sendMessage(inputText)}
+          disabled={!inputText.trim() || isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color={customColors.card} />
+          ) : (
+            <Ionicons name="send" size={20} color={customColors.card} />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Suggestions Section */}
+      <View style={[styles.suggestionsContainer, { maxHeight: 200 }]}>
+        <Text style={[styles.suggestionsTitle, { color: customColors.text }]}>Quick nutrition questions:</Text>
+        <ScrollView style={{ maxHeight: 160 }} horizontal showsHorizontalScrollIndicator={false}>
+          {NUTRITION_QUESTIONS.map((q, idx) => (
             <TouchableOpacity
               key={idx}
-              style={[styles.suggestionButton, { backgroundColor: customColors.primary }]}
+              style={[styles.suggestionButton, { backgroundColor: customColors.primary, marginRight: 8 }]}
               onPress={() => handleQuestion(q)}
+              disabled={isLoading}
             >
               <Text style={[styles.suggestionText, { color: customColors.card }]}>{q}</Text>
             </TouchableOpacity>
@@ -202,8 +249,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   suggestionText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 16,
+    borderTopWidth: 1,
+    gap: 8,
+  },
+  textInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

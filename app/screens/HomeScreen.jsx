@@ -487,7 +487,7 @@ const HomeScreen = () => {
             onPress={() => navigation.navigate('Meals')}
           >
             <Ionicons name="restaurant" size={24} color="white" />
-            <Text style={styles.actionButtonText}>Log Meal</Text>
+            <Text style={styles.actionButtonText}>Meal Logs</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
