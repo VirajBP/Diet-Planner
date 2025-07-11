@@ -13,7 +13,7 @@ export const Picker = ({
   placeholder = 'Select an option',
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   
   // Handle both items and options props for backward compatibility
   const pickerOptions = options || items || [];
@@ -132,7 +132,7 @@ export const Picker = ({
                   style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={[styles.doneButtonText, { color: theme.dark ? '#000000' : '#FFFFFF' }]}>
+                  <Text style={[styles.doneButtonText, { color: isDark ? '#000000' : '#FFFFFF' }]}>
                     Done
                   </Text>
                 </TouchableOpacity>

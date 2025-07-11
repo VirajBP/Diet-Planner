@@ -6,8 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const AboutUsScreen = () => {
   const navigation = useNavigation();
-  const { theme } = useTheme();
-  const isDark = theme.dark;
+  const { theme, isDark } = useTheme();
   const customColors = isDark ? {
     primary: '#27AE60',
     background: '#121212',

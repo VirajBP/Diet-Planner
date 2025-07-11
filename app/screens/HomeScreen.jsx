@@ -2,16 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../components/ui/Card';
@@ -56,8 +56,7 @@ const FRESH_CALM_DARK = {
 };
 
 const HomeScreen = () => {
-  const { theme } = useTheme();
-  const isDark = theme.dark;
+  const { theme, isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const { user } = useAuth();
   const { meals, loading: mealsLoading, loadMeals, addMeal: addMealToContext, deleteMeal: deleteMealFromContext } = useMeals();
@@ -524,6 +523,14 @@ const HomeScreen = () => {
             >
               <Ionicons name="bulb-outline" size={24} color={customColors.primary} />
               <Text style={[styles.actionText, { color: theme.colors.text }]}>Custom Ingredients Meal Search</Text>
+            </TouchableOpacity>
+            
+                <TouchableOpacity
+              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+              onPress={() => navigation.navigate('ProgressStatistics')}
+            >
+              <Ionicons name="bar-chart-outline" size={24} color={customColors.primary} />
+              <Text style={[styles.actionText, { color: theme.colors.text }]}>Progress Statistics</Text>
             </TouchableOpacity>
                 
           {/* </ScrollView> */}

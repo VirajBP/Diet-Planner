@@ -31,8 +31,7 @@ const FRESH_CALM_DARK = {
 };
 
 const ProfileScreen = ({ navigation }) => {
-  const { theme } = useTheme();
-  const isDark = theme.dark;
+  const { theme, isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const { user, signOut, updateUserProfile } = useAuth();
   const [editModalVisible, setEditModalVisible] = useState(false);

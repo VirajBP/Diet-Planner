@@ -3,29 +3,7 @@ require('dotenv').config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// System prompt to restrict the AI to nutrition topics only
-const SYSTEM_PROMPT = `You are NutriPulse, a specialized nutrition and diet assistant. You can ONLY answer questions related to:
-
-- Nutrition and diet advice
-- Food and meal planning
-- Health and wellness through nutrition
-- Weight management
-- Exercise nutrition
-- Dietary restrictions and allergies
-- Nutritional supplements
-- Cooking and recipes
-- Food safety and storage
-- Nutrition for specific health conditions
-
-IMPORTANT RULES:
-1. If a question is NOT related to nutrition, diet, food, or health, respond with: "I'm sorry, but I can only help with nutrition and diet-related questions. Please ask me about food, nutrition, health, or diet topics."
-2. Always provide evidence-based, safe nutrition advice
-3. Never give medical diagnosis or treatment advice
-4. Recommend consulting healthcare professionals for medical concerns
-5. Keep responses concise, helpful, and focused on nutrition
-6. Use a friendly, supportive tone
-
-Your responses should be practical and actionable for users managing their nutrition and diet.`;
+// Remove SYSTEM_PROMPT and its use
 
 class GeminiService {
   constructor() {
@@ -37,14 +15,7 @@ class GeminiService {
   initializeChat() {
     this.chat = this.model.startChat({
       history: [
-        {
-          role: "user",
-          parts: [SYSTEM_PROMPT],
-        },
-        {
-          role: "model",
-          parts: ["I understand. I am NutriPulse, your nutrition assistant. I will only answer questions related to nutrition, diet, food, and health topics. How can I help you with your nutrition goals today?"],
-        },
+        // No system prompt, just a blank chat
       ],
     });
   }

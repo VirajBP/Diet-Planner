@@ -41,7 +41,7 @@ const FRESH_CALM_DARK = {
 };
 
 const WeightLogScreen = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
@@ -59,7 +59,6 @@ const WeightLogScreen = () => {
   const [bmiExpected, setBmiExpected] = useState(null);
   const [bmiStatus, setBmiStatus] = useState('');
   const [weightGoal, setWeightGoal] = useState(user?.profile?.targetWeight?.toString() || '');
-  const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   useEffect(() => {

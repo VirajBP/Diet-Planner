@@ -53,9 +53,8 @@ const NUTRITION_QUESTIONS = [
 const DEFAULT_RESPONSE = "I'm sorry, but I can only help with nutrition and diet-related questions. Please ask me about food, nutrition, health, or diet topics.";
 
 const ChatbotScreen = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
-  const isDark = theme.dark;
   const customColors = isDark? FRESH_CALM_DARK: FRESH_CALM_LIGHT
   const navigation = useNavigation();
   const [messages, setMessages] = useState([

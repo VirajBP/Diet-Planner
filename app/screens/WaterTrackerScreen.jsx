@@ -2,15 +2,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
+import { BarChart } from 'react-native-chart-kit';
 import CircularProgress from 'react-native-circular-progress-indicator';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../components/ui/Card';
@@ -44,7 +44,7 @@ const FRESH_CALM_DARK = {
 };
 
 const WaterTrackerScreen = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [waterLogs, setWaterLogs] = useState([]);
@@ -54,7 +54,6 @@ const WaterTrackerScreen = () => {
   const [todayTotal, setTodayTotal] = useState(0);
   const [dailyGoal, setDailyGoal] = useState(WATER_GOAL);
   const [monthlyLogs, setMonthlyLogs] = useState([]);
-  const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   useEffect(() => {
@@ -172,17 +171,8 @@ const WaterTrackerScreen = () => {
         </TouchableOpacity>
       );
     }
-
-    return (
-      <>
-        <View style={styles.projectionCard}>
-          <Text style={[styles.projectionTitle, { color: customColors.text }]}>
-            Today's Water Intake
-          </Text>
-          {/* Add your monthly projection chart/graph here */}
-        </View>
-      </>
-    );
+    // For premium users, remove monthly projection chart from this screen
+    return null;
   };
 
   // Calculate progress for the progress circle
@@ -201,6 +191,20 @@ const WaterTrackerScreen = () => {
     return {
       labels: Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString()),
       datasets: [{ data: dailyTotals }],
+    };
+  }
+
+  function getTodayHourlyChartData() {
+    // 24 hours, 0-23
+    const hourlyTotals = Array(24).fill(0);
+    waterLogs.forEach(log => {
+      const d = new Date(log.createdAt);
+      const hour = d.getHours();
+      hourlyTotals[hour] += log.amount;
+    });
+    return {
+      labels: Array.from({ length: 24 }, (_, i) => i % 3 === 0 ? `${i}:00` : ''),
+      datasets: [{ data: hourlyTotals }],
     };
   }
 
@@ -293,11 +297,11 @@ const WaterTrackerScreen = () => {
           />
         </View>
 
-        {monthlyLogs.length > 0 && (
-          <Card style={[styles.logsCard, {backgroundColor: customColors.background}]}>
-            <Text style={[styles.sectionTitle, { color: customColors.text }]}>Monthly Water Intake</Text>
-            <LineChart
-              data={getMonthlyChartData()}
+        {waterLogs.length > 0 && (
+          <Card style={[styles.logsCard, {backgroundColor: customColors.background}]}> 
+            <Text style={[styles.sectionTitle, { color: customColors.text }]}>Today's Water Intake (Hourly)</Text>
+            <BarChart
+              data={getTodayHourlyChartData()}
               width={320}
               height={180}
               chartConfig={{
@@ -309,25 +313,21 @@ const WaterTrackerScreen = () => {
                 labelColor: () => customColors.text,
                 style: { borderRadius: 16 },
               }}
-              bezier
               style={{ marginVertical: 8, borderRadius: 16 }}
-              formatXLabel={(value, index) => (parseInt(value) % 3 === 1 ? value : '')}
+              fromZero
+              showValuesOnTopOfBars
             />
           </Card>
         )}
 
-        <Card style={[styles.logsCard, {backgroundColor: customColors.background}]}>
-          <Text style={[styles.sectionTitle, { color: customColors.text }]}>
-            Today's Logs
-          </Text>
-          {waterLogs.length > 0 ? (
-            waterLogs.map(renderWaterLog)
+        <View style={[styles.logsSection, { backgroundColor: customColors.surface }]}>
+          <Text style={[styles.logsTitle, { color: customColors.text }]}>Today's Water Logs</Text>
+          {waterLogs.length === 0 ? (
+            <Text style={{ color: customColors.text }}>No water logs for today yet.</Text>
           ) : (
-            <Text style={[styles.emptyText, { color: customColors.text }]}>
-              No water logged today
-            </Text>
+            waterLogs.map(renderWaterLog)
           )}
-        </Card>
+        </View>
       </ScrollView>
 
     </SafeAreaView>
@@ -486,6 +486,17 @@ const styles = StyleSheet.create({
     height: 50,
     paddingHorizontal: 15,
     fontSize: 16,
+  },
+  logsSection: {
+    marginTop: 24,
+    padding: 16,
+    borderRadius: 10,
+    marginHorizontal: 8,
+  },
+  logsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
   },
 });
 

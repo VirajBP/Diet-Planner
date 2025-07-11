@@ -29,6 +29,7 @@ app.use('/api/reminders', require('./routes/reminders'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/chatbot', require('./routes/chatbot'));
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/progress', require('./routes/progress'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -57,9 +57,8 @@ const steps = [
 const OnboardingScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { completeOnboarding } = useOnboarding();
-  const { theme } = useTheme();
-  const isDark = theme.dark;
-  const customColors = isDark ? FRESH_CALM_DARK: FRESH_CALM_LIGHT
+  const { theme, isDark } = useTheme();
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   const handleNext = async () => {
     if (currentStep < steps.length - 1) {

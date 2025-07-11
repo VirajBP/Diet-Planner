@@ -32,9 +32,8 @@ const RegisterScreen = ({ navigation }) => {
     dietaryRestrictions: []
   });
   const [loading, setLoading] = useState(false);
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { signUp } = useAuth();
-  const isDark = theme.dark;
   const customColors = isDark ? {
     primary: '#27AE60',
     card: '#1E1E1E',

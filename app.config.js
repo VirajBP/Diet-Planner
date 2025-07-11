@@ -15,7 +15,12 @@ export default {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.dietplanner.app',
-    buildNumber: '1.0.0'
+    buildNumber: '1.0.0',
+    infoPlist: {
+      NSLocationWhenInUseUsageDescription: 'This app needs location access to track your steps in the background.',
+      NSLocationAlwaysAndWhenInUseUsageDescription: 'This app needs location access to track your steps in the background.',
+      UIBackgroundModes: ['location', 'background-fetch']
+    }
   },
   android: {
     adaptiveIcon: {
@@ -32,7 +37,11 @@ export default {
       'CAMERA',
       'VIBRATE',
       'WAKE_LOCK',
-      'RECEIVE_BOOT_COMPLETED'
+      'RECEIVE_BOOT_COMPLETED',
+      'ACTIVITY_RECOGNITION',
+      'ACCESS_FINE_LOCATION',
+      'ACCESS_COARSE_LOCATION',
+      'ACCESS_BACKGROUND_LOCATION'
     ]
   },
   web: {
@@ -57,6 +66,10 @@ export default {
     'expo-font',
     'expo-web-browser',
     'expo-notifications',
+    'expo-sensors',
+    'expo-task-manager',
+    'expo-background-fetch',
+    'expo-location',
     // '@react-native-community/datetimepicker'
     // Temporarily disabled splash screen plugin to test crash
     // [

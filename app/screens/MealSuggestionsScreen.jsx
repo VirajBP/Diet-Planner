@@ -70,7 +70,7 @@ function calculatePackageTotalCalories(pkg) {
 }
 
 const MealSuggestionsScreen = ({ navigation }) => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [customIngredients, setCustomIngredients] = useState('');
@@ -84,7 +84,6 @@ const MealSuggestionsScreen = ({ navigation }) => {
   const [offset, setOffset] = useState(0);
   const [limit] = useState(10); // page size
   const [total, setTotal] = useState(0);
-  const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   const currentWeight = user?.profile?.weight || user?.weight || 70;

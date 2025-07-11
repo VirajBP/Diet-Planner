@@ -41,7 +41,7 @@ const FRESH_CALM_DARK = {
 };
 
 const MealScreen = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { meals, loading: mealsLoading, loadMeals, addMeal: addMealToContext, deleteMeal: deleteMealFromContext } = useMeals();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -59,7 +59,6 @@ const MealScreen = () => {
   const navigation = useNavigation();
   const { user } = useAuth();
 
-  const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   const UNIT_CALORIES = {

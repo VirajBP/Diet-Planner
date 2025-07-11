@@ -41,8 +41,7 @@ const FRESH_CALM_DARK = {
 };
 
 const NutritionSearchScreen = () => {
-  const { theme } = useTheme();
-  const isDark=theme.dark
+  const { theme, isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -51,7 +50,7 @@ const NutritionSearchScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [searchInfo, setSearchInfo] = useState(null);
   const navigation = useNavigation();
-  const customColors = isDark? FRESH_CALM_DARK:FRESH_CALM_LIGHT
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       Alert.alert('Error', 'Please enter a search term');

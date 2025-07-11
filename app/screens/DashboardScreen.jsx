@@ -32,13 +32,12 @@ const FRESH_CALM_DARK = {
 };
 
 const DashboardScreen = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const navigation = useNavigation();
   const [weightData, setWeightData] = useState([]);
   const [calorieData, setCalorieData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState('week');
-  const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   useEffect(() => {

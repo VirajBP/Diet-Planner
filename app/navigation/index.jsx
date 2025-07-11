@@ -4,9 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { setStatusBarBackgroundColor, setStatusBarStyle } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
-import { useTheme as usePaperTheme } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { useOnboarding } from '../context/OnboardingContext';
+import { useTheme } from '../context/ThemeContext';
 
 // Import screens
 import SplashScreen from '../components/SplashScreen';
@@ -14,6 +14,7 @@ import AboutUsScreen from '../screens/AboutUsScreen';
 import CalorieCalculatorScreen from '../screens/CalorieCalculatorScreen';
 import ChatbotScreen from '../screens/ChatbotScreen';
 import ContactUsScreen from '../screens/ContactUsScreen';
+import ExerciseScreen from '../screens/ExerciseScreen';
 import HelpCenterScreen from '../screens/HelpCenterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -24,6 +25,7 @@ import OnboardingScreen from '../screens/OnboardingScreen';
 import PremiumScreen from '../screens/PremiumScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ProgressStatisticsScreen from '../screens/ProgressStatistics';
 import RegisterScreen from '../screens/RegisterScreen';
 import RemindersScreen from '../screens/RemindersScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -57,8 +59,7 @@ const FRESH_CALM_DARK = {
 };
 
 function TabNavigator() {
-  const paperTheme = usePaperTheme();
-  const isDark = paperTheme.dark;
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   return (
     <Tab.Navigator
@@ -113,13 +114,21 @@ function TabNavigator() {
           ),
         }}
       />
+      <Tab.Screen
+        name="Exercise"
+        component={ExerciseScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="barbell" size={size} color={color} />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }
 
 function AuthStack() {
-  const paperTheme = usePaperTheme();
-  const isDark = paperTheme.dark;
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   return (
     <Stack.Navigator
@@ -144,8 +153,7 @@ function AuthStack() {
 }
 
 function MainStack() {
-  const paperTheme = usePaperTheme();
-  const isDark = paperTheme.dark;
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   return (
     <Stack.Navigator
@@ -176,13 +184,14 @@ function MainStack() {
       <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <Stack.Screen name="Chatbot" component={ChatbotScreen}/>
+      <Stack.Screen name="ProgressStatistics" component={ProgressStatisticsScreen}/>
+      <Stack.Screen name="Exercise" component={ExerciseScreen}/>
     </Stack.Navigator>
   );
 }
 
 function RootNavigator() {
-  const paperTheme = usePaperTheme();
-  const isDark = paperTheme.dark;
+  const { theme, isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const colorScheme = useColorScheme();
   const { user, loading: authLoading } = useAuth();

@@ -18,9 +18,8 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { signIn } = useAuth();
-  const isDark = theme.dark;
   const FRESH_CALM_LIGHT = {
     primary: '#2ECC71', // Mint Green
     secondary: '#A3E4D7',

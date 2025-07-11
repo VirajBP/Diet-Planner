@@ -14,8 +14,7 @@ import { useTheme } from '../context/ThemeContext';
 import { mongodbService } from '../services/mongodb.service';
 
 const PasswordUpdateModal = ({ visible, onClose, onSuccess }) => {
-  const { theme } = useTheme();
-  const isDark = theme.dark;
+  const { isDark } = useTheme();
   
   const customColors = isDark ? {
     primary: '#27AE60',

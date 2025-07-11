@@ -1,20 +1,19 @@
-import { useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import {
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { Ionicons } from '@expo/vector-icons'
 
 // Fresh & Calm (Mint Theme)
 const FRESH_CALM_LIGHT = {
@@ -39,11 +38,10 @@ const FRESH_CALM_DARK = {
 };
 
 const CalorieCalculatorScreen = () => {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { user } = useAuth();
   const route = useRoute();
   const navigation = useNavigation();
-  const isDark = theme.dark;
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const autofillProfile = route.params?.autofill && (route.params?.profile || user?.profile);
   const profile = route.params?.profile || user?.profile;
