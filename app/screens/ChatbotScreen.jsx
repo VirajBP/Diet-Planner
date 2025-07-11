@@ -72,6 +72,9 @@ const ChatbotScreen = () => {
     setInputText('');
     setIsLoading(true);
 
+    // Log the token for debugging
+    console.log('[Chatbot] Sending token:', user?.token);
+
     try {
       const response = await fetch(`${API_URL}/chatbot/chat`, {
         method: 'POST',
@@ -94,7 +97,7 @@ const ChatbotScreen = () => {
 
       const botMessage = { 
         from: 'bot', 
-        text: data.success ? data.message : DEFAULT_RESPONSE 
+        text: data.success ? data.message : (data.message || DEFAULT_RESPONSE)
       };
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { BarChart, LineChart } from 'react-native-chart-kit';
+import { BarChart, LineChart, ProgressChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import progressService from '../services/progressService';
@@ -261,42 +261,38 @@ const ProgressStatisticsScreen = () => {
 
   const renderBestWorstCard = () => (
     <View style={[styles.card, { backgroundColor: customColors.card, borderColor: customColors.border }]}>
-      <Text style={[styles.cardTitle, { color: customColors.text }]}>Best & Worst Days</Text>
-      
+      <Text style={[styles.cardTitle, { color: customColors.text }]}>Best & Highest Calorie Days</Text>
       <View style={styles.bestWorstContainer}>
         <View style={styles.bestWorstItem}>
           <Text style={[styles.bestWorstLabel, { color: customColors.primary }]}>Best Calorie Day</Text>
-          <Text style={[styles.bestWorstValue, { color: customColors.text }]}>
+          <Text style={[styles.bestWorstValue, { color: customColors.text }]}> 
             {statistics.bestDays?.calories?.date ? 
               `${statistics.bestDays.calories.date.slice(5)} (${statistics.bestDays.calories.value} cal)` : 
               'No data'
             }
           </Text>
         </View>
-        
         <View style={styles.bestWorstItem}>
-          <Text style={[styles.bestWorstLabel, { color: customColors.error }]}>Lowest Calorie Day</Text>
-          <Text style={[styles.bestWorstValue, { color: customColors.text }]}>
-            {statistics.worstDays?.calories?.date ? 
-              `${statistics.worstDays.calories.date.slice(5)} (${statistics.worstDays.calories.value} cal)` : 
+          <Text style={[styles.bestWorstLabel, { color: customColors.error }]}>Highest Calorie Day</Text>
+          <Text style={[styles.bestWorstValue, { color: customColors.text }]}> 
+            {statistics.highestDays?.calories?.date ? 
+              `${statistics.highestDays.calories.date.slice(5)} (${statistics.highestDays.calories.value} cal)` : 
               'No data'
             }
           </Text>
         </View>
-        
         <View style={styles.bestWorstItem}>
           <Text style={[styles.bestWorstLabel, { color: customColors.secondary }]}>Best Water Day</Text>
-          <Text style={[styles.bestWorstValue, { color: customColors.text }]}>
+          <Text style={[styles.bestWorstValue, { color: customColors.text }]}> 
             {statistics.bestDays?.water?.date ? 
               `${statistics.bestDays.water.date.slice(5)} (${statistics.bestDays.water.value} ml)` : 
               'No data'
             }
           </Text>
         </View>
-        
         <View style={styles.bestWorstItem}>
           <Text style={[styles.bestWorstLabel, { color: customColors.error }]}>Lowest Water Day</Text>
-          <Text style={[styles.bestWorstValue, { color: customColors.text }]}>
+          <Text style={[styles.bestWorstValue, { color: customColors.text }]}> 
             {statistics.worstDays?.water?.date ? 
               `${statistics.worstDays.water.date.slice(5)} (${statistics.worstDays.water.value} ml)` : 
               'No data'

@@ -194,17 +194,18 @@ const WaterTrackerScreen = () => {
     };
   }
 
-  function getTodayHourlyChartData() {
-    // 24 hours, 0-23
-    const hourlyTotals = Array(24).fill(0);
+  function getTodayFourHourChartData() {
+    // 6 slots: 0-4, 4-8, 8-12, 12-16, 16-20, 20-24
+    const slotTotals = Array(6).fill(0);
     waterLogs.forEach(log => {
       const d = new Date(log.createdAt);
       const hour = d.getHours();
-      hourlyTotals[hour] += log.amount;
+      const slot = Math.floor(hour / 4);
+      slotTotals[slot] += log.amount;
     });
     return {
-      labels: Array.from({ length: 24 }, (_, i) => i % 3 === 0 ? `${i}:00` : ''),
-      datasets: [{ data: hourlyTotals }],
+      labels: ['12am', '4am', '8am', '12pm', '4pm', '8pm'],
+      datasets: [{ data: slotTotals }],
     };
   }
 
@@ -299,9 +300,9 @@ const WaterTrackerScreen = () => {
 
         {waterLogs.length > 0 && (
           <Card style={[styles.logsCard, {backgroundColor: customColors.background}]}> 
-            <Text style={[styles.sectionTitle, { color: customColors.text }]}>Today's Water Intake (Hourly)</Text>
+            <Text style={[styles.sectionTitle, { color: customColors.text }]}>Today's Water Intake (4-Hour Slots)</Text>
             <BarChart
-              data={getTodayHourlyChartData()}
+              data={getTodayFourHourChartData()}
               width={320}
               height={180}
               chartConfig={{

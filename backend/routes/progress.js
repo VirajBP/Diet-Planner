@@ -175,7 +175,7 @@ router.get('/statistics', auth, async (req, res) => {
       const tdee = bmr * activityMultipliers[user.profile.activityLevel] || 1.375;
       
       if (user.profile.goal === 'lose') {
-        goalCalories = Math.round(tdee - 500);
+        goalCalories = Math.round(tdee - WEIGHT_LOSS_DEFICIT);
       } else if (user.profile.goal === 'gain') {
         goalCalories = Math.round(tdee + 500);
       } else {
@@ -310,75 +310,69 @@ function generateStatistics(dailyData, weeklyData, monthlyData, user) {
   const daysWithData = dailyData.filter(day => day.calories > 0 || day.water > 0);
   const daysWithCalories = dailyData.filter(day => day.calories > 0);
   const daysWithWater = dailyData.filter(day => day.water > 0);
-  
-  // Best and worst days
-  const bestCalorieDay = daysWithCalories.reduce((best, day) => 
-    day.calories > best.calories ? day : best, { calories: 0, date: '' });
-  const worstCalorieDay = daysWithCalories.reduce((worst, day) => 
-    day.calories < worst.calories ? day : worst, { calories: Infinity, date: '' });
-  
+
+  // Calculate goal calories
+  const goalCalories = user?.profile ? calculateGoalCalories(user.profile) : 2000;
+
+  // Best Calorie Day: lowest calories at or above goal
+  const bestCalorieDay = daysWithCalories
+    .filter(day => day.calories >= goalCalories)
+    .reduce((best, day) => (day.calories < best.calories ? day : best), { calories: Infinity, date: '' });
+  const bestCalorieDayValid = bestCalorieDay.calories !== Infinity;
+
+  // Highest Calorie Day: highest calories above goal
+  const highestCalorieDay = daysWithCalories
+    .filter(day => day.calories > goalCalories)
+    .reduce((highest, day) => (day.calories > highest.calories ? day : highest), { calories: -Infinity, date: '' });
+  const highestCalorieDayValid = highestCalorieDay.calories !== -Infinity;
+
+  // Best and worst water days (unchanged)
   const bestWaterDay = daysWithWater.reduce((best, day) => 
     day.water > best.water ? day : best, { water: 0, date: '' });
   const worstWaterDay = daysWithWater.reduce((worst, day) => 
     day.water < worst.water ? day : worst, { water: Infinity, date: '' });
-  
-  // Calculate averages
+
+  // Calculate averages (unchanged)
   const avgCalories = daysWithCalories.length > 0 ? 
     Math.round(daysWithCalories.reduce((sum, day) => sum + day.calories, 0) / daysWithCalories.length) : 0;
   const avgWater = daysWithWater.length > 0 ? 
     Math.round(daysWithWater.reduce((sum, day) => sum + day.water, 0) / daysWithWater.length) : 0;
-  
-  // Calculate goal achievement percentages
-  const goalCalories = user?.profile ? calculateGoalCalories(user.profile) : 2000;
+
+  // Calculate goal achievement percentages (unchanged)
   const goalWater = user?.profile?.weight ? Math.round(user.profile.weight * 30) : 2000;
-  
   const calorieGoalDays = daysWithCalories.filter(day => day.calories >= goalCalories).length;
   const waterGoalDays = daysWithWater.filter(day => day.water >= goalWater).length;
-  
   const calorieGoalPercentage = daysWithCalories.length > 0 ? 
     Math.round((calorieGoalDays / daysWithCalories.length) * 100) : 0;
   const waterGoalPercentage = daysWithWater.length > 0 ? 
     Math.round((waterGoalDays / daysWithWater.length) * 100) : 0;
-  
-  // Calculate trends
+
+  // Trends (unchanged)
   const recentDays = dailyData.slice(-7);
   const previousDays = dailyData.slice(-14, -7);
-  
   const recentAvgCalories = recentDays.length > 0 ? 
     recentDays.reduce((sum, day) => sum + day.calories, 0) / recentDays.length : 0;
   const previousAvgCalories = previousDays.length > 0 ? 
     previousDays.reduce((sum, day) => sum + day.calories, 0) / previousDays.length : 0;
-  
   const recentAvgWater = recentDays.length > 0 ? 
     recentDays.reduce((sum, day) => sum + day.water, 0) / recentDays.length : 0;
   const previousAvgWater = previousDays.length > 0 ? 
     previousDays.reduce((sum, day) => sum + day.water, 0) / previousDays.length : 0;
-  
   const calorieTrend = previousAvgCalories > 0 ? 
     Math.round(((recentAvgCalories - previousAvgCalories) / previousAvgCalories) * 100) : 0;
   const waterTrend = previousAvgWater > 0 ? 
     Math.round(((recentAvgWater - previousAvgWater) / previousAvgWater) * 100) : 0;
-  
+
   return {
     bestDays: {
-      calories: {
-        date: bestCalorieDay.date,
-        value: bestCalorieDay.calories
-      },
-      water: {
-        date: bestWaterDay.date,
-        value: bestWaterDay.water
-      }
+      calories: bestCalorieDayValid ? { date: bestCalorieDay.date, value: bestCalorieDay.calories } : null,
+      water: { date: bestWaterDay.date, value: bestWaterDay.water }
+    },
+    highestDays: {
+      calories: highestCalorieDayValid ? { date: highestCalorieDay.date, value: highestCalorieDay.calories } : null
     },
     worstDays: {
-      calories: {
-        date: worstCalorieDay.date,
-        value: worstCalorieDay.calories
-      },
-      water: {
-        date: worstWaterDay.date,
-        value: worstWaterDay.water
-      }
+      water: { date: worstWaterDay.date, value: worstWaterDay.water }
     },
     averages: {
       calories: avgCalories,
@@ -432,7 +426,7 @@ function calculateGoalCalories(profile) {
   const tdee = bmr * activityMultipliers[profile.activityLevel] || 1.375;
   
   if (profile.goal === 'lose') {
-    return Math.round(tdee - 500);
+    return Math.round(tdee - WEIGHT_LOSS_DEFICIT);
   } else if (profile.goal === 'gain') {
     return Math.round(tdee + 500);
   } else {

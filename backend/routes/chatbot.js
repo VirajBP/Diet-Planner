@@ -7,6 +7,9 @@ const auth = require('../middleware/auth');
 router.post('/chat', auth, async (req, res) => {
   try {
     const { message } = req.body;
+    // Log user and token info for debugging
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    console.log('[CHATBOT] User ID:', req.user?.id, '| Token (masked):', token ? token.slice(0, 8) + '...' : 'none');
     
     if (!message || typeof message !== 'string') {
       return res.status(400).json({ 
@@ -17,6 +20,7 @@ router.post('/chat', auth, async (req, res) => {
 
     // Get response from Gemini
     const response = await geminiService.getResponse(message);
+    console.log('Gemini API response:', response);
     
     res.json(response);
 

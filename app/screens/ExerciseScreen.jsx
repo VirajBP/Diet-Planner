@@ -255,9 +255,13 @@ const ExerciseScreen = () => {
   const [stepsExpanded, setStepsExpanded] = useState({});
   const [dailySteps, setDailySteps] = useState(0);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [pexelsVideos, setPexelsVideos] = useState([]);
+  const [pexelsLoading, setPexelsLoading] = useState(false);
+  const [pexelsError, setPexelsError] = useState(null);
 
   useEffect(() => {
     filterExercises();
+    fetchExerciseVideos();
   }, [selectedCategory, searchQuery, exercises]);
 
   const filterExercises = () => {
@@ -412,6 +416,45 @@ const ExerciseScreen = () => {
     </ScrollView>
   );
 
+  const renderPexelsVideos = () => (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={[styles.section, { color: customColors.text }]}>Exercise Videos (Pexels)</Text>
+      {pexelsLoading ? (
+        <ActivityIndicator size="small" color={customColors.primary} />
+      ) : pexelsError ? (
+        <Text style={{ color: customColors.error }}>{pexelsError}</Text>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {pexelsVideos.map((video) => (
+            <View key={video.id} style={{ width: 220, marginRight: 12 }}>
+              <VideoPlayer
+                videoUrl={video.video_files?.[0]?.link}
+                thumbnailUrl={video.image}
+                style={{ height: 120, borderRadius: 8 }}
+              />
+              <Text style={{ color: customColors.text, fontSize: 12, marginTop: 4 }} numberOfLines={1}>
+                {video.user?.name || 'Pexels'}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </View>
+  );
+
+  const fetchExerciseVideos = async () => {
+    setPexelsLoading(true);
+    setPexelsError(null);
+    try {
+      const videos = await fetchExerciseVideos('exercise', 10);
+      setPexelsVideos(videos);
+    } catch (err) {
+      setPexelsError('Failed to load exercise videos');
+    } finally {
+      setPexelsLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
       <ScrollView 
@@ -435,6 +478,7 @@ const ExerciseScreen = () => {
           onChangeText={setSearchQuery}
         />
 
+        {renderPexelsVideos()}
         {renderCategoryFilter()}
 
         <StepTracker onStepUpdate={setDailySteps} />
@@ -662,6 +706,11 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     textAlign: 'center',
+  },
+  section: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
   },
 });
 
