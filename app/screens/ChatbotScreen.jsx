@@ -67,6 +67,12 @@ const ChatbotScreen = () => {
   const sendMessage = async (message) => {
     if (!message.trim()) return;
 
+    if (!user || !user.token) {
+      alert('You are not logged in. Please log in again.');
+      setIsLoading(false);
+      return;
+    }
+
     const userMessage = { from: 'user', text: message };
     setMessages(prev => [...prev, userMessage]);
     setInputText('');

@@ -260,6 +260,7 @@ const ExerciseScreen = () => {
   const [pexelsError, setPexelsError] = useState(null);
 
   useEffect(() => {
+    console.log('useEffect for videos ran');
     filterExercises();
     fetchExerciseVideos();
   }, [selectedCategory, searchQuery, exercises]);

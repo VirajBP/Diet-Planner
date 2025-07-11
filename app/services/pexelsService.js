@@ -4,6 +4,7 @@ import PEXELS_API_KEY from '../../backend/.env';
 const PEXELS_API_KEY = process.env.PEXELS_API_KEY || 'YOUR_PEXELS_API_KEY';
 
 export async function fetchExerciseVideos(query = 'exercise', perPage = 10) {
+  console.log('fetchExerciseVideos called');
   const url = `${process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001'}/api/pexels/videos?query=${encodeURIComponent(query)}&per_page=${perPage}`;
   console.log('[Pexels] Fetching videos from:', url);
   try {
