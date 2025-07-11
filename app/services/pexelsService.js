@@ -20,6 +20,6 @@ export async function fetchExerciseVideos(query = 'exercise', perPage = 10) {
     return data.videos || [];
   } catch (error) {
     console.error('[Pexels] Fetch error:', error);
-    return [];
+    return []; // Return empty array on error
   }
 } 

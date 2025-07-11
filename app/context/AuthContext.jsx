@@ -39,7 +39,9 @@ export const AuthProvider = ({ children }) => {
       mongodbService.setToken(token);
       try {
         const userData = await mongodbService.getProfile();
-        setUser(userData);
+        const userWithToken = { ...userData, token };
+        setUser(userWithToken);
+        console.log('[AuthContext] User loaded from storage:', userWithToken);
         
         // Check for trial expiry and prompt
         if (userData.premiumTrialUsed && !userData.isPremium) {
@@ -91,17 +93,17 @@ export const AuthProvider = ({ children }) => {
     try {
       // Format email consistently
       const formattedEmail = email.toLowerCase().trim();
-      
       // Validate input
       if (!formattedEmail || !password) {
         throw new Error('Please provide both email and password');
       }
-
       const { token, user: userData } = await mongodbService.login(formattedEmail, password);
       await AsyncStorage.setItem('userToken', token);
       mongodbService.setToken(token);
-      setUser(userData);
-      return userData;
+      const userWithToken = { ...userData, token };
+      setUser(userWithToken);
+      console.log('[AuthContext] User signed in:', userWithToken);
+      return userWithToken;
     } catch (error) {
       // Clear any invalid state
       await AsyncStorage.removeItem('userToken');
@@ -136,18 +138,16 @@ export const AuthProvider = ({ children }) => {
           }
         }
       };
-
       const { token, user: newUser } = await mongodbService.register(formattedUserData);
-      
       // Set token first before making any authenticated requests
       await AsyncStorage.setItem('userToken', token);
       mongodbService.setToken(token);
-      
       // Now get the full profile with the token set
       const fullProfile = await mongodbService.getProfile();
-      setUser(fullProfile);
-      
-      return fullProfile;
+      const userWithToken = { ...fullProfile, token };
+      setUser(userWithToken);
+      console.log('[AuthContext] User signed up:', userWithToken);
+      return userWithToken;
     } catch (error) {
       // Clear any invalid state
       await AsyncStorage.removeItem('userToken');
@@ -189,8 +189,10 @@ export const AuthProvider = ({ children }) => {
       
       mongodbService.setToken(token);
       const userData = await mongodbService.getProfile();
-      setUser(userData);
-      return userData;
+      const userWithToken = { ...userData, token };
+      setUser(userWithToken);
+      console.log('[AuthContext] User refreshed:', userWithToken);
+      return userWithToken;
     } catch (error) {
       console.error('Error refreshing user:', error);
       // If refresh fails, clear the authentication state

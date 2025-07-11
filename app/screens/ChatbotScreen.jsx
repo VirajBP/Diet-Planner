@@ -68,6 +68,7 @@ const ChatbotScreen = () => {
     if (!message.trim()) return;
 
     if (!user || !user.token) {
+      console.log('[Chatbot] user object:', user);
       alert('You are not logged in. Please log in again.');
       setIsLoading(false);
       return;
