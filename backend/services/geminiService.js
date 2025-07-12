@@ -22,6 +22,63 @@ class GeminiService {
     this.requestQueue = [];
     this.isProcessing = false;
     this.consecutiveFailures = 0;
+    
+    // Daily quota tracking
+    this.dailyRequests = 0;
+    this.lastResetDate = new Date().toDateString();
+    this.quotaExceeded = false;
+    
+    // Hourly rate limiting
+    this.hourlyRequests = 0;
+    this.lastHourReset = new Date().getHours();
+    
+    // Reset quota daily
+    this.resetQuotaDaily();
+  }
+
+  // Reset quota counter daily
+  resetQuotaDaily() {
+    const today = new Date().toDateString();
+    if (today !== this.lastResetDate) {
+      this.dailyRequests = 0;
+      this.lastResetDate = today;
+      this.quotaExceeded = false;
+      this.consecutiveFailures = 0;
+      console.log('Daily quota reset');
+    }
+    
+    // Reset hourly counter
+    const currentHour = new Date().getHours();
+    if (currentHour !== this.lastHourReset) {
+      this.hourlyRequests = 0;
+      this.lastHourReset = currentHour;
+      console.log('Hourly quota reset');
+    }
+  }
+
+  // Check if we can make a request
+  canMakeRequest() {
+    this.resetQuotaDaily();
+    
+    // If quota exceeded, don't make requests
+    if (this.quotaExceeded) {
+      return false;
+    }
+    
+    // Check hourly limit
+    if (this.hourlyRequests >= config.quota.maxRequestsPerHour) {
+      console.log(`Hourly limit reached: ${this.hourlyRequests}/${config.quota.maxRequestsPerHour}`);
+      return false;
+    }
+    
+    // If approaching daily limit, be more conservative
+    const bufferLimit = Math.floor(config.rateLimit.requestsPerDay * (1 - config.quota.bufferPercentage));
+    if (this.dailyRequests >= bufferLimit) {
+      console.log(`Approaching daily limit: ${this.dailyRequests}/${config.rateLimit.requestsPerDay} (buffer: ${bufferLimit})`);
+      return false;
+    }
+    
+    return true;
   }
 
   // Initialize or reset chat
@@ -84,7 +141,20 @@ class GeminiService {
 
   // Make actual API request
   async makeRequest(userQuery, retryCount = 0) {
+    // Check if we can make a request
+    if (!this.canMakeRequest()) {
+      const fallbackMessage = this.getFallbackResponse(userQuery);
+      return {
+        success: true,
+        message: fallbackMessage + "\n\n" + config.messages.quotaExceeded
+      };
+    }
+
     try {
+      // Increment request counter
+      this.dailyRequests++;
+      this.hourlyRequests++; // Increment hourly request counter
+      
       // Initialize chat if not already done
       if (!this.chat) {
         this.initializeChat();
@@ -109,6 +179,9 @@ class GeminiService {
       
       // Handle rate limiting/quota exceeded
       if (error.status === 429 || error.message.includes('quota') || error.message.includes('Too Many Requests')) {
+        // Mark quota as exceeded to prevent further requests
+        this.quotaExceeded = true;
+        
         if (retryCount < config.rateLimit.maxRetries) {
           // Exponential backoff: wait 2^retryCount seconds
           const delay = Math.pow(config.rateLimit.retryDelayMultiplier, retryCount) * 1000;
@@ -152,6 +225,22 @@ class GeminiService {
   resetChat() {
     this.chat = null;
     this.consecutiveFailures = 0;
+  }
+
+  // Get quota status
+  getQuotaStatus() {
+    this.resetQuotaDaily();
+    const bufferLimit = Math.floor(config.rateLimit.requestsPerDay * (1 - config.quota.bufferPercentage));
+    return {
+      dailyRequests: this.dailyRequests,
+      dailyLimit: config.rateLimit.requestsPerDay,
+      dailyBufferLimit: bufferLimit,
+      hourlyRequests: this.hourlyRequests,
+      hourlyLimit: config.quota.maxRequestsPerHour,
+      quotaExceeded: this.quotaExceeded,
+      remainingDailyRequests: Math.max(0, bufferLimit - this.dailyRequests),
+      remainingHourlyRequests: Math.max(0, config.quota.maxRequestsPerHour - this.hourlyRequests)
+    };
   }
 }
 

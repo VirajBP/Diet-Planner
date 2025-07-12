@@ -33,6 +33,23 @@ router.post('/chat', auth, async (req, res) => {
   }
 });
 
+// GET /api/chatbot/quota - Get quota status
+router.get('/quota', auth, async (req, res) => {
+  try {
+    const quotaStatus = geminiService.getQuotaStatus();
+    res.json({
+      success: true,
+      quota: quotaStatus
+    });
+  } catch (error) {
+    console.error('Quota status error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Internal server error' 
+    });
+  }
+});
+
 // POST /api/chatbot/reset - Reset chat history
 router.post('/reset', auth, async (req, res) => {
   try {

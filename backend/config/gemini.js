@@ -11,6 +11,13 @@ module.exports = {
     retryDelayMultiplier: 2, // Exponential backoff multiplier
   },
   
+  // Quota management
+  quota: {
+    bufferPercentage: 0.1, // Stop at 90% of daily limit (1350 requests)
+    conservativeMode: true, // Enable conservative mode
+    maxRequestsPerHour: 60, // Limit requests per hour
+  },
+  
   // Fallback settings
   fallback: {
     enableAfterFailures: 3, // Enable fallback after 3 consecutive failures
@@ -28,6 +35,7 @@ module.exports = {
     rateLimited: "I'm experiencing high traffic right now. Please try again in a few minutes.",
     quotaExceeded: "I've reached my daily limit. Please try again tomorrow.",
     connectionError: "I'm having trouble connecting right now. Please try again in a moment.",
-    fallbackNote: "(Note: Using fallback response due to API issues)"
+    fallbackNote: "(Note: Using fallback response due to API issues)",
+    approachingLimit: "I'm approaching my daily limit. Using basic responses for now."
   }
 }; 
