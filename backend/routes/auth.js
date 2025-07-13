@@ -287,16 +287,16 @@ router.post('/forgot-password', async (req, res) => {
     await user.save();
 
     // Configure email transporter
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
+        pass: process.env.EMAIL_PASS
       }
     });
 
-    // Create reset URL
-    const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    // Create deep link reset URL
+    const resetUrl = `nutripulse://reset-password?token=${resetToken}`;
 
     // Email content
     const mailOptions = {
@@ -315,7 +315,7 @@ router.post('/forgot-password', async (req, res) => {
               You requested a password reset for your NutriPulse account.
             </p>
             <p style="color: #333; font-size: 16px; line-height: 1.5;">
-              Click the button below to reset your password:
+              <strong>On your mobile device, tap the button below to open the NutriPulse app and reset your password:</strong>
             </p>
           </div>
           
@@ -337,8 +337,11 @@ router.post('/forgot-password', async (req, res) => {
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
             <p style="color: #666; font-size: 12px; text-align: center;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
+              If the button doesn't work, copy and paste this link into your mobile browser:<br>
               <a href="${resetUrl}" style="color: #2ECC71;">${resetUrl}</a>
+            </p>
+            <p style="color: #666; font-size: 12px; text-align: center;">
+              <strong>Note:</strong> This link only works on devices with the NutriPulse app installed.
             </p>
           </div>
         </div>

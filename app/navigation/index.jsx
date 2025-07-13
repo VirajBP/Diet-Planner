@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { setStatusBarBackgroundColor, setStatusBarStyle } from 'expo-status-bar';
 import React, { useEffect } from 'react';
@@ -34,8 +35,24 @@ import WaterTrackerScreen from '../screens/WaterTrackerScreen';
 import WeightLogScreen from '../screens/WeightLogScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+const linking = {
+  prefixes: ['nutripulse://'],
+  config: {
+    screens: {
+      Auth: {
+        screens: {
+          ResetPassword: 'reset-password',
+        },
+      },
+      ResetPassword: 'reset-password',
+      // Add other screens if you want to support more deep links
+    },
+  },
+};
 
 // Fresh & Calm (Mint Theme)
 const FRESH_CALM_LIGHT = {
@@ -273,4 +290,12 @@ function RootNavigator() {
   );
 }
 
-export default RootNavigator; 
+function AppNavigation() {
+  return (
+    <NavigationContainer linking={linking}>
+      <RootNavigator />
+    </NavigationContainer>
+  );
+}
+
+export default AppNavigation; 

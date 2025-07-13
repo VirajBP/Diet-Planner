@@ -1,3 +1,4 @@
+import { useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -19,7 +20,9 @@ const ResetPasswordScreen = ({ navigation, route }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { isDark } = useTheme();
-  const { token } = route.params || {};
+  const navRoute = useRoute();
+  // Prefer token from deep link params, fallback to route.params
+  const token = navRoute?.params?.token || route?.params?.token;
 
   const FRESH_CALM_LIGHT = {
     primary: '#2ECC71', // Mint Green

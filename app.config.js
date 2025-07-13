@@ -56,6 +56,9 @@ export default {
   runtimeVersion: {
     policy: 'sdkVersion'
   },
+  "expo":{
+    "scheme":"nutripulse"
+  },
   extra: {
     eas: {
       projectId: '40f4ba6f-0493-4a84-a9d5-703632207825'
