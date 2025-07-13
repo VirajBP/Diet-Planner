@@ -2,6 +2,13 @@ module.exports = {
   // Gemini API Configuration
   model: "gemini-1.5-pro",
   
+  // Project Configuration (Optional - for advanced usage)
+  project: {
+    projectId: process.env.GEMINI_PROJECT_ID || null,
+    projectName: process.env.GEMINI_PROJECT_NAME || null,
+    location: process.env.GEMINI_LOCATION || 'global',
+  },
+  
   // Rate limiting settings
   rateLimit: {
     requestsPerMinute: 15, // Free tier limit
