@@ -1,12 +1,30 @@
 import { mongodbService } from './mongodb.service';
 
 class ProgressService {
+  constructor() {
+    this.cache = new Map();
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+  }
+
   async getStatistics() {
     try {
       const response = await mongodbService.api.get('/progress/statistics');
       return response.data;
     } catch (error) {
       console.error('Error fetching progress statistics:', error);
+      throw error;
+    }
+  }
+
+  async refreshData() {
+    try {
+      // Clear cache to force fresh data fetch
+      this.cache.clear();
+      // Fetch fresh statistics
+      await this.getStatistics();
+      console.log('Progress statistics refreshed successfully');
+    } catch (error) {
+      console.error('Error refreshing progress data:', error);
       throw error;
     }
   }

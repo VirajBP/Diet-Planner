@@ -2,17 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    LayoutAnimation,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    UIManager,
-    View
+  ActivityIndicator,
+  Dimensions,
+  LayoutAnimation,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import StepTracker from '../components/StepTracker';
@@ -244,7 +244,7 @@ const SAMPLE_EXERCISES = [
 
 const ExerciseScreen = () => {
   const navigation = useNavigation();
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   
   const [loading, setLoading] = useState(false);
@@ -312,7 +312,7 @@ const ExerciseScreen = () => {
             <Text style={[styles.exerciseName, { color: customColors.text }]}>{exercise.name}</Text>
             <View style={styles.exerciseMeta}>
               <View style={[styles.categoryTag, { backgroundColor: customColors.primary + '20' }]}>
-                <Text style={[styles.categoryText, { color: customColors.primary }]}>{exercise.category}</Text>
+                <Text style={[styles.categoryText, { color: customColors.primary }]}>{exercise.tag}</Text>
               </View>
               <View style={[styles.difficultyTag, { backgroundColor: customColors.secondary + '20' }]}>
                 <Text style={[styles.difficultyText, { color: customColors.secondary }]}>{exercise.difficulty}</Text>
@@ -340,7 +340,7 @@ const ExerciseScreen = () => {
 
         {isExpanded && (
           <View style={styles.expandedContent}>
-            <Text style={[styles.description, { color: customColors.text }]}>{exercise.description}</Text>
+            <Text style={[styles.description, { color: customColors.text }]}>{exercise.details}</Text>
             
             <View style={styles.actionButtons}>
               <TouchableOpacity 

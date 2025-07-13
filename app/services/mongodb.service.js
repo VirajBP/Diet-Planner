@@ -132,6 +132,42 @@ class MongoDBService {
     }
   }
 
+  async forgotPassword(email) {
+    try {
+      if (!email) {
+        throw new Error('Email is required');
+      }
+      const formattedEmail = email.toLowerCase().trim();
+      const response = await this.api.post('/auth/forgot-password', {
+        email: formattedEmail
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  }
+
+  async resetPassword(token, newPassword) {
+    try {
+      if (!token || !newPassword) {
+        throw new Error('Token and new password are required');
+      }
+      const response = await this.api.post('/auth/reset-password', {
+        token,
+        newPassword
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw error;
+    }
+  }
+
   async register(userData) {
     try {
       // Always lowercase and trim email before sending

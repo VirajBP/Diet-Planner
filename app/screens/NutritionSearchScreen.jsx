@@ -41,7 +41,7 @@ const FRESH_CALM_DARK = {
 };
 
 const NutritionSearchScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -114,14 +114,14 @@ const NutritionSearchScreen = () => {
 
     return (
       <TouchableOpacity
-        style={[styles.resultItem, { backgroundColor: theme.colors.card }]}
+        style={[styles.resultItem, { backgroundColor: customColors.card }]}
         onPress={() => {
           handleMealSelect(item);
           setShowModal(true);
         }}
       >
         <View style={styles.itemHeader}>
-          <Text style={[styles.itemName, { color: theme.colors.text }]}>
+          <Text style={[styles.itemName, { color: customColors.text }]}>
             {item.name || item.food?.label}
           </Text>
           <View style={styles.itemBadges}>
@@ -140,7 +140,7 @@ const NutritionSearchScreen = () => {
         
         {isPredefined && firstUnit && (
           <View style={styles.nutritionPreview}>
-            <Text style={[styles.nutritionText, { color: theme.colors.text }]}>
+            <Text style={[styles.nutritionText, { color: customColors.text }]}>
               {firstUnit.calories} cal • {firstUnit.protein}g protein • {firstUnit.carbs}g carbs • {firstUnit.fat}g fat
             </Text>
           </View>
@@ -148,7 +148,7 @@ const NutritionSearchScreen = () => {
         
         {!isPredefined && item.food?.nutrients && (
           <View style={styles.nutritionPreview}>
-            <Text style={[styles.nutritionText, { color: theme.colors.text }]}>
+            <Text style={[styles.nutritionText, { color: customColors.text }]}>
               {Math.round(item.food.nutrients.ENERC_KCAL || 0)} cal • {Math.round(item.food.nutrients.PROCNT || 0)}g protein
             </Text>
           </View>
@@ -156,7 +156,7 @@ const NutritionSearchScreen = () => {
 
         {item.searchKeywords && (
           <View style={styles.keywordsContainer}>
-            <Text style={[styles.keywordsText, { color: theme.colors.text + '60' }]}>
+            <Text style={[styles.keywordsText, { color: customColors.text + '60' }]}>
               Keywords: {item.searchKeywords.slice(0, 5).join(', ')}
             </Text>
           </View>
@@ -173,37 +173,37 @@ const NutritionSearchScreen = () => {
       onRequestClose={() => setShowModal(false)}
     >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
+        <View style={[styles.modalContent, { backgroundColor: customColors.background }]}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+            <Text style={[styles.modalTitle, { color: customColors.text }]}>
               {selectedMeal?.name || selectedMeal?.food?.label}
             </Text>
             <TouchableOpacity onPress={() => setShowModal(false)}>
-              <Ionicons name="close" size={24} color={theme.colors.text} />
+              <Ionicons name="close" size={24} color={customColors.text} />
             </TouchableOpacity>
           </View>
 
           <ScrollView style={styles.modalBody}>
             {selectedMeal?.units && selectedMeal.units.length > 0 && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Nutrition per Unit</Text>
+                <Text style={[styles.sectionTitle, { color: customColors.text }]}>Nutrition per Unit</Text>
                 {selectedMeal.units.map((unit, index) => (
-                  <View key={index} style={[styles.unitCard, { backgroundColor: theme.colors.card }]}>
+                  <View key={index} style={[styles.unitCard, { backgroundColor: customColors.card }]}>
                     <Text style={[styles.unitName, { color: customColors.primary }]}>
                       {unit.unit} ({unit.calories} calories)
                     </Text>
                     <View style={styles.nutritionGrid}>
                       <View style={styles.nutritionItem}>
-                        <Text style={[styles.nutritionLabel, { color: theme.colors.text }]}>Protein</Text>
-                        <Text style={[styles.nutritionValue, { color: theme.colors.text }]}>{unit.protein}g</Text>
+                        <Text style={[styles.nutritionLabel, { color: customColors.text }]}>Protein</Text>
+                        <Text style={[styles.nutritionValue, { color: customColors.text }]}>{unit.protein}g</Text>
                       </View>
                       <View style={styles.nutritionItem}>
-                        <Text style={[styles.nutritionLabel, { color: theme.colors.text }]}>Carbs</Text>
-                        <Text style={[styles.nutritionValue, { color: theme.colors.text }]}>{unit.carbs}g</Text>
+                        <Text style={[styles.nutritionLabel, { color: customColors.text }]}>Carbs</Text>
+                        <Text style={[styles.nutritionValue, { color: customColors.text }]}>{unit.carbs}g</Text>
                       </View>
                       <View style={styles.nutritionItem}>
-                        <Text style={[styles.nutritionLabel, { color: theme.colors.text }]}>Fat</Text>
-                        <Text style={[styles.nutritionValue, { color: theme.colors.text }]}>{unit.fat}g</Text>
+                        <Text style={[styles.nutritionLabel, { color: customColors.text }]}>Fat</Text>
+                        <Text style={[styles.nutritionValue, { color: customColors.text }]}>{unit.fat}g</Text>
                       </View>
                     </View>
                   </View>
@@ -213,8 +213,8 @@ const NutritionSearchScreen = () => {
 
             {selectedMeal?.ingredients && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Ingredients</Text>
-                <Text style={[styles.ingredientsText, { color: theme.colors.text }]}>
+                <Text style={[styles.sectionTitle, { color: customColors.text }]}>Ingredients</Text>
+                <Text style={[styles.ingredientsText, { color: customColors.text }]}>
                   {selectedMeal.ingredients.join(', ')}
                 </Text>
               </View>
@@ -222,11 +222,11 @@ const NutritionSearchScreen = () => {
 
             {selectedMeal?.recipe && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Recipe</Text>
+                <Text style={[styles.sectionTitle, { color: customColors.text }]}>Recipe</Text>
                 {selectedMeal.recipe.map((step, index) => (
                   <View key={index} style={styles.recipeStep}>
                     <Text style={[styles.stepNumber, { color: customColors.primary }]}>{index + 1}.</Text>
-                    <Text style={[styles.stepText, { color: theme.colors.text }]}>{step}</Text>
+                    <Text style={[styles.stepText, { color: customColors.text }]}>{step}</Text>
                   </View>
                 ))}
               </View>
@@ -234,7 +234,7 @@ const NutritionSearchScreen = () => {
 
             {selectedMeal?.tags && (
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Tags</Text>
+                <Text style={[styles.sectionTitle, { color: customColors.text }]}>Tags</Text>
                 <View style={styles.tagsContainer}>
                   {selectedMeal.tags.map((tag, index) => (
                     <View key={index} style={[styles.tag, { backgroundColor: customColors.primary }]}>
@@ -251,22 +251,22 @@ const NutritionSearchScreen = () => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 16 , flexDirection: 'row', alignItems: 'center', gap: 10}}>
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-        <Text style={[styles.title, { color: theme.colors.text }]}>Nutrition Search</Text>
+          <Ionicons name="arrow-back" size={24} color={customColors.text} />
+        <Text style={[styles.title, { color: customColors.text }]}>Nutrition Search</Text>
         </TouchableOpacity>
-        <Text style={[styles.subtitle, { color: theme.colors.text + '80' }]}>
+        <Text style={[styles.subtitle, { color: customColors.text + '80' }]}>
           Search for food items to view nutrition information
         </Text>
       </View>
 
       <View style={styles.searchContainer}>
         <TextInput
-          style={[styles.searchInput, { backgroundColor: theme.colors.card, color: theme.colors.text }]}
+          style={[styles.searchInput, { backgroundColor: customColors.card, color: customColors.text }]}
           placeholder="Search for food items..."
-          placeholderTextColor={theme.colors.text + '60'}
+          placeholderTextColor={customColors.text + '60'}
           value={searchQuery}
           onChangeText={handleSearchChange}
           onSubmitEditing={handleSearch}
@@ -281,17 +281,17 @@ const NutritionSearchScreen = () => {
 
       {/* Search Suggestions */}
       {suggestions.length > 0 && (
-        <View style={[styles.suggestionsContainer, { backgroundColor: theme.colors.card }]}>
+        <View style={[styles.suggestionsContainer, { backgroundColor: customColors.card }]}>
           {suggestions.map((suggestion, index) => (
             <TouchableOpacity
               key={index}
               style={styles.suggestionItem}
               onPress={() => selectSuggestion(suggestion)}
             >
-              <Text style={[styles.suggestionText, { color: theme.colors.text }]}>
+              <Text style={[styles.suggestionText, { color: customColors.text }]}>
                 {suggestion.name}
               </Text>
-              <Text style={[styles.suggestionCategory, { color: theme.colors.text + '60' }]}>
+              <Text style={[styles.suggestionCategory, { color: customColors.text + '60' }]}>
                 {suggestion.category}
               </Text>
             </TouchableOpacity>
@@ -301,19 +301,19 @@ const NutritionSearchScreen = () => {
 
       {/* Search Info */}
       {searchInfo && (
-        <View style={[styles.searchInfoContainer, { backgroundColor: theme.colors.card }]}>
-          <Text style={[styles.searchInfoText, { color: theme.colors.text }]}>
+        <View style={[styles.searchInfoContainer, { backgroundColor: customColors.card }]}>
+          <Text style={[styles.searchInfoText, { color: customColors.text }]}>
             Found {searchInfo.resultsCount} results for "{searchInfo.query}"
           </Text>
           {searchInfo.relevanceScores && (
-            <Text style={[styles.searchInfoText, { color: theme.colors.text + '80' }]}>
+            <Text style={[styles.searchInfoText, { color: customColors.text + '80' }]}>
               Strategy: {searchInfo.strategy}
             </Text>
           )}
         </View>
       )}
 
-      {loading && <ActivityIndicator size="small" color={theme.colors.primary} />}
+      {loading && <ActivityIndicator size="small" color={customColors.primary} />}
 
       <FlatList
         data={searchResults}
@@ -324,8 +324,8 @@ const NutritionSearchScreen = () => {
         ListEmptyComponent={
           !loading && searchQuery ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="search-outline" size={48} color={theme.colors.text + '40'} />
-              <Text style={[styles.emptyText, { color: theme.colors.text + '60' }]}>
+              <Ionicons name="search-outline" size={48} color={customColors.text + '40'} />
+              <Text style={[styles.emptyText, { color: customColors.text + '60' }]}>
                 No results found for "{searchQuery}"
               </Text>
             </View>

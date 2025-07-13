@@ -2,16 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,7 +42,7 @@ const FRESH_CALM_DARK = {
 };
 
 const RemindersScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -328,7 +328,7 @@ const RemindersScreen = () => {
                     >
                       <Text style={[
                         styles.typeOptionText,
-                        { color: formData.mealType === mealType ? 'white' : theme.colors.text }
+                        { color: formData.mealType === mealType ? 'white' : customColors.text }
                       ]}>
                         {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
                       </Text>
@@ -339,43 +339,43 @@ const RemindersScreen = () => {
             )}
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Title</Text>
+              <Text style={[styles.inputLabel, { color: customColors.text }]}>Title</Text>
               <TextInput
                 style={[styles.textInput, { 
-                  backgroundColor: theme.colors.card,
-                  color: theme.colors.text,
-                  borderColor: theme.colors.border
+                  backgroundColor: customColors.card,
+                  color: customColors.text,
+                  borderColor: customColors.border
                 }]}
                 value={formData.title}
                 onChangeText={(text) => setFormData({ ...formData, title: text })}
                 placeholder="Reminder title"
-                placeholderTextColor={theme.colors.text + '60'}
+                placeholderTextColor={customColors.text + '60'}
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Message</Text>
+              <Text style={[styles.inputLabel, { color: customColors.text }]}>Message</Text>
               <TextInput
                 style={[styles.textInput, { 
-                  backgroundColor: theme.colors.card,
-                  color: theme.colors.text,
-                  borderColor: theme.colors.border
+                  backgroundColor: customColors.card,
+                  color: customColors.text,
+                  borderColor: customColors.border
                 }]}
                 value={formData.message}
                 onChangeText={(text) => setFormData({ ...formData, message: text })}
                 placeholder="Reminder message"
-                placeholderTextColor={theme.colors.text + '60'}
+                placeholderTextColor={customColors.text + '60'}
                 multiline
               />
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Time</Text>
+              <Text style={[styles.inputLabel, { color: customColors.text }]}>Time</Text>
               <TouchableOpacity
-                style={[styles.textInput, { justifyContent: 'center', backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+                style={[styles.textInput, { justifyContent: 'center', backgroundColor: customColors.card, borderColor: customColors.border }]}
                 onPress={() => setTimePickerVisible(true)}
               >
-                <Text style={{ color: theme.colors.text, fontSize: 16 }}>{formData.time || 'Select Time'}</Text>
+                <Text style={{ color: customColors.text, fontSize: 16 }}>{formData.time || 'Select Time'}</Text>
               </TouchableOpacity>
               <DateTimePickerModal
                 isVisible={isTimePickerVisible}
@@ -390,14 +390,14 @@ const RemindersScreen = () => {
 
           <View style={styles.modalFooter}>
             <TouchableOpacity
-              style={[styles.button, { backgroundColor: theme.colors.border }]}
+              style={[styles.button, { backgroundColor: customColors.border }]}
               onPress={() => {
                 setShowModal(false);
                 setEditingReminder(null);
                 resetForm();
               }}
             >
-              <Text style={[styles.buttonText, { color: theme.colors.text }]}>Cancel</Text>
+              <Text style={[styles.buttonText, { color: customColors.text }]}>Cancel</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, { backgroundColor: customColors.primary }]}
@@ -414,16 +414,16 @@ const RemindersScreen = () => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 16 , flexDirection: 'row', alignItems: 'center', gap: 10}}>
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          <Text style={[styles.title, { color: theme.colors.text }]}>Reminders</Text>
+          <Ionicons name="arrow-back" size={24} color={customColors.text} />
+          <Text style={[styles.title, { color: customColors.text }]}>Reminders</Text>
         </TouchableOpacity>
         
         <View style={styles.headerButtons}>
           {/* <TouchableOpacity
-            style={[styles.testButton, { backgroundColor: theme.colors.card }]}
+            style={[styles.testButton, { backgroundColor: customColors.card }]}
             onPress={testNotification}
           >
             <Ionicons name="notifications" size={20} color={customColors.primary} />
@@ -446,11 +446,11 @@ const RemindersScreen = () => {
         ListEmptyComponent={
           !loading ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="notifications-outline" size={48} color={theme.colors.text + '40'} />
-              <Text style={[styles.emptyText, { color: theme.colors.text + '60' }]}>
+              <Ionicons name="notifications-outline" size={48} color={customColors.text + '40'} />
+              <Text style={[styles.emptyText, { color: customColors.text + '60' }]}>
                 No reminders set yet
               </Text>
-              <Text style={[styles.emptySubtext, { color: theme.colors.text + '40' }]}>
+              <Text style={[styles.emptySubtext, { color: customColors.text + '40' }]}>
                 Tap the + button to add your first reminder
               </Text>
             </View>

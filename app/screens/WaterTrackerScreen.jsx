@@ -44,7 +44,7 @@ const FRESH_CALM_DARK = {
 };
 
 const WaterTrackerScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [waterLogs, setWaterLogs] = useState([]);

@@ -53,9 +53,9 @@ const NUTRITION_QUESTIONS = [
 const DEFAULT_RESPONSE = "I'm sorry, but I can only help with nutrition and diet-related questions. Please ask me about food, nutrition, health, or diet topics.";
 
 const ChatbotScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { user } = useAuth();
-  const customColors = isDark? FRESH_CALM_DARK: FRESH_CALM_LIGHT
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const navigation = useNavigation();
   const [messages, setMessages] = useState([
     { from: 'bot', text: 'Hi! I am NutriPulse, your nutrition assistant. I can help you with diet, nutrition, and health questions. What would you like to know?' }

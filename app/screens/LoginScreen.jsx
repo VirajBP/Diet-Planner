@@ -3,6 +3,7 @@ import {
     Alert,
     Image,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     StyleSheet,
     Text,
@@ -13,12 +14,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { mongodbService } from '../services/mongodb.service';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { theme, isDark } = useTheme();
+  const [forgotPasswordModalVisible, setForgotPasswordModalVisible] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const { isDark } = useTheme();
   const { signIn } = useAuth();
   const FRESH_CALM_LIGHT = {
     primary: '#2ECC71', // Mint Green
@@ -56,6 +61,36 @@ const LoginScreen = ({ navigation }) => {
       Alert.alert('Error', error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotPasswordEmail.trim()) {
+      Alert.alert('Error', 'Please enter your email address');
+      return;
+    }
+
+    try {
+      setForgotPasswordLoading(true);
+      const response = await mongodbService.forgotPassword(forgotPasswordEmail);
+      
+      Alert.alert(
+        'Reset Link Sent', 
+        response.message || 'If an account with this email exists, you will receive a password reset link shortly.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setForgotPasswordModalVisible(false);
+              setForgotPasswordEmail('');
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to send reset link');
+    } finally {
+      setForgotPasswordLoading(false);
     }
   };
 
@@ -101,6 +136,15 @@ const LoginScreen = ({ navigation }) => {
           />
 
           <TouchableOpacity
+            style={styles.forgotPasswordContainer}
+            onPress={() => setForgotPasswordModalVisible(true)}
+          >
+            <Text style={[styles.forgotPasswordText, { color: customColors.primary }]}>
+              Forgot Password?
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={[styles.button, { backgroundColor: customColors.primary }]}
             onPress={handleLogin}
             disabled={loading}
@@ -120,6 +164,59 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Forgot Password Modal */}
+      <Modal
+        visible={forgotPasswordModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setForgotPasswordModalVisible(false)}
+      >
+        <View style={[styles.modalContainer, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
+          <View style={[styles.modalContent, { backgroundColor: customColors.card }]}>
+            <Text style={[styles.modalTitle, { color: customColors.text }]}>Reset Password</Text>
+            <Text style={[styles.modalDescription, { color: customColors.text }]}>
+              Enter your email address and we'll send you a link to reset your password.
+            </Text>
+            
+            <TextInput
+              style={[styles.input, { 
+                backgroundColor: customColors.background,
+                color: customColors.text,
+                borderColor: customColors.border
+              }]}
+              placeholder="Email"
+              placeholderTextColor="#8E8E93"
+              value={forgotPasswordEmail}
+              onChangeText={setForgotPasswordEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton, { backgroundColor: customColors.background }]}
+                onPress={() => {
+                  setForgotPasswordModalVisible(false);
+                  setForgotPasswordEmail('');
+                }}
+              >
+                <Text style={[styles.cancelButtonText, { color: customColors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton, { backgroundColor: customColors.primary }]}
+                onPress={handleForgotPassword}
+                disabled={forgotPasswordLoading}
+              >
+                <Text style={styles.saveButtonText}>
+                  {forgotPasswordLoading ? 'Sending...' : 'Send Reset Link'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -155,6 +252,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     marginBottom: 15,
   },
+  forgotPasswordContainer: {
+    alignSelf: 'flex-end',
+    marginBottom: 15,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
   button: {
     width: '100%',
     height: 50,
@@ -172,6 +277,63 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    padding: 20,
+    borderRadius: 12,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    height: 45,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  saveButton: {
+    // Primary color already set
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
   },
 });
 

@@ -26,7 +26,7 @@ const FRESH_CALM_DARK = {
 };
 
 const WelcomeScreen = ({ navigation }) => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   return (

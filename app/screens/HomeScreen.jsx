@@ -56,7 +56,7 @@ const FRESH_CALM_DARK = {
 };
 
 const HomeScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const { user } = useAuth();
   const { meals, loading: mealsLoading, loadMeals, addMeal: addMealToContext, deleteMeal: deleteMealFromContext } = useMeals();
@@ -235,11 +235,34 @@ const HomeScreen = () => {
     try {
       setLoading(true);
       const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit, selectedSuggestion);
+      
+      // Calculate macronutrients based on selected suggestion or use default ratios
+      let protein = 0, carbs = 0, fat = 0;
+      if (selectedSuggestion && selectedSuggestion.units) {
+        const unitObj = selectedSuggestion.units.find(u => u.unit === newMeal.unit);
+        if (unitObj) {
+          const quantity = parseFloat(newMeal.quantity);
+          protein = Math.round((unitObj.protein || 0) * quantity);
+          carbs = Math.round((unitObj.carbs || 0) * quantity);
+          fat = Math.round((unitObj.fat || 0) * quantity);
+        }
+      } else {
+        // Default macronutrient ratios if no suggestion is selected
+        // 20% protein, 50% carbs, 30% fat (typical balanced meal)
+        protein = Math.round(calories * 0.2 / 4); // 4 calories per gram of protein
+        carbs = Math.round(calories * 0.5 / 4);   // 4 calories per gram of carbs
+        fat = Math.round(calories * 0.3 / 9);     // 9 calories per gram of fat
+      }
+      
       const mealData = {
         name: newMeal.name,
         calories,
         type: newMeal.type,
         quantity: `${newMeal.quantity} ${newMeal.unit}`,
+        protein,
+        carbs,
+        fat,
+        ingredients: selectedSuggestion?.ingredients || []
       };
       await addMealToContext(mealData);
       setNewMeal({ name: '', quantity: '', unit: 'plate', type: 'breakfast' });
@@ -511,26 +534,26 @@ const HomeScreen = () => {
               <Text style={[styles.actionText, { color: customColors.text }]}>Log Weight</Text>
             </TouchableOpacity>
                 <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+              style={[styles.actionCard, { backgroundColor: customColors.card }]}
               onPress={() => navigation.navigate('Water')}
             >
               <Ionicons name="water" size={24} color={customColors.primary} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>Water Tracker</Text>
+              <Text style={[styles.actionText, { color: customColors.text }]}>Water Tracker</Text>
             </TouchableOpacity>
                 <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+              style={[styles.actionCard, { backgroundColor: customColors.card }]}
               onPress={() => navigation.navigate('MealSuggestions')}
             >
               <Ionicons name="bulb-outline" size={24} color={customColors.primary} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>Custom Ingredients Meal Search</Text>
+              <Text style={[styles.actionText, { color: customColors.text }]}>Custom Ingredients Meal Search</Text>
             </TouchableOpacity>
             
                 <TouchableOpacity
-              style={[styles.actionCard, { backgroundColor: theme.colors.card }]}
+              style={[styles.actionCard, { backgroundColor: customColors.card }]}
               onPress={() => navigation.navigate('ProgressStatistics')}
             >
               <Ionicons name="bar-chart-outline" size={24} color={customColors.primary} />
-              <Text style={[styles.actionText, { color: theme.colors.text }]}>Progress Statistics</Text>
+              <Text style={[styles.actionText, { color: customColors.text }]}>Progress Statistics</Text>
             </TouchableOpacity>
                 
           {/* </ScrollView> */}

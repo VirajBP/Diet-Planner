@@ -31,7 +31,7 @@ const FRESH_CALM_DARK = {
 };
 
 const ProfileScreen = ({ navigation }) => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const { user, signOut, updateUserProfile } = useAuth();
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -265,98 +265,98 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={[styles.inputLabel, { color: customColors.text }]}>Age</Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: theme.colors.card,
-                color: theme.colors.text,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                color: customColors.text,
+                borderColor: customColors.border
               }]}
               value={editingProfile?.age?.toString()}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, age: text })}
               keyboardType="numeric"
               placeholder="Enter your age"
-              placeholderTextColor={theme.colors.text + '80'}
+              placeholderTextColor={customColors.text + '80'}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Gender</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Gender</Text>
             <Picker
               selectedValue={editingProfile?.gender}
               onValueChange={(value) => setEditingProfile({ ...editingProfile, gender: value })}
               items={genders}
               style={[styles.picker, { 
-                backgroundColor: theme.colors.card,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                borderColor: customColors.border
               }]}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Height (cm)</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Height (cm)</Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: theme.colors.card,
-                color: theme.colors.text,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                color: customColors.text,
+                borderColor: customColors.border
               }]}
               value={editingProfile?.height?.toString()}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, height: text })}
               keyboardType="numeric"
               placeholder="Enter your height in cm"
-              placeholderTextColor={theme.colors.text + '80'}
+              placeholderTextColor={customColors.text + '80'}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Current Weight (kg)</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Current Weight (kg)</Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: theme.colors.card,
-                color: theme.colors.text,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                color: customColors.text,
+                borderColor: customColors.border
               }]}
               value={editingProfile?.weight?.toString()}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, weight: text })}
               keyboardType="numeric"
               placeholder="Enter your current weight in kg"
-              placeholderTextColor={theme.colors.text + '80'}
+              placeholderTextColor={customColors.text + '80'}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Target Weight (kg)</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Target Weight (kg)</Text>
             <TextInput
               style={[styles.input, { 
-                backgroundColor: theme.colors.card,
-                color: theme.colors.text,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                color: customColors.text,
+                borderColor: customColors.border
               }]}
               value={editingProfile?.targetWeight?.toString()}
               onChangeText={(text) => setEditingProfile({ ...editingProfile, targetWeight: text })}
               keyboardType="numeric"
               placeholder="Enter your target weight in kg"
-              placeholderTextColor={theme.colors.text + '80'}
+              placeholderTextColor={customColors.text + '80'}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Activity Level</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Activity Level</Text>
             <Picker
               selectedValue={editingProfile?.activityLevel}
               onValueChange={(value) => setEditingProfile({ ...editingProfile, activityLevel: value })}
               items={activityLevels}
               style={[styles.picker, { 
-                backgroundColor: theme.colors.card,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                borderColor: customColors.border
               }]}
             />
 
-            <Text style={[styles.inputLabel, { color: theme.colors.text }]}>Goal</Text>
+            <Text style={[styles.inputLabel, { color: customColors.text }]}>Goal</Text>
             <Picker
               selectedValue={editingProfile?.goal}
               onValueChange={(value) => setEditingProfile({ ...editingProfile, goal: value })}
               items={goals}
               style={[styles.picker, { 
-                backgroundColor: theme.colors.card,
-                borderColor: theme.colors.border
+                backgroundColor: customColors.card,
+                borderColor: customColors.border
               }]}
             />
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton, { borderColor: theme.colors.border }]}
+                style={[styles.modalButton, styles.cancelButton, { borderColor: customColors.border }]}
                 onPress={() => setEditModalVisible(false)}
               >
-                <Text style={[styles.modalButtonText, { color: theme.colors.text }]}>Cancel</Text>
+                <Text style={[styles.modalButtonText, { color: customColors.text }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton, { backgroundColor: customColors.primary }]}
@@ -375,10 +375,10 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: theme.colors.text }]}>Profile</Text>
+          <Text style={[styles.title, { color: customColors.text }]}>Profile</Text>
           <TouchableOpacity
             style={[styles.editButton, { backgroundColor: customColors.primary }]}
             onPress={handleEditPress}

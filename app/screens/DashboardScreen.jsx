@@ -32,7 +32,7 @@ const FRESH_CALM_DARK = {
 };
 
 const DashboardScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const navigation = useNavigation();
   const [weightData, setWeightData] = useState([]);
   const [calorieData, setCalorieData] = useState([]);

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BarChart, LineChart, ProgressChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,7 +32,7 @@ const { width } = Dimensions.get('window');
 
 const ProgressStatisticsScreen = () => {
     const navigation = useNavigation();
-    const { theme, isDark } = useTheme();
+    const { isDark } = useTheme();
     const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
     
     const [loading, setLoading] = useState(true);
@@ -49,6 +49,13 @@ const ProgressStatisticsScreen = () => {
   useEffect(() => {
     loadProgressData();
   }, []);
+
+  // Refresh data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadProgressData();
+    }, [])
+  );
 
   const loadProgressData = async () => {
     try {

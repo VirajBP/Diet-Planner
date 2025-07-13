@@ -28,6 +28,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import ProgressStatisticsScreen from '../screens/ProgressStatistics';
 import RegisterScreen from '../screens/RegisterScreen';
 import RemindersScreen from '../screens/RemindersScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import WaterTrackerScreen from '../screens/WaterTrackerScreen';
 import WeightLogScreen from '../screens/WeightLogScreen';
@@ -148,6 +149,7 @@ function AuthStack() {
       <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 }

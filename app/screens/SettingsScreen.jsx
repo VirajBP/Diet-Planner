@@ -38,7 +38,7 @@ const FRESH_CALM_DARK = {
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const { signOut } = useAuth();
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
 

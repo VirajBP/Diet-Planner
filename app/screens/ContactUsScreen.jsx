@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const ContactUsScreen = () => {
   const navigation = useNavigation();
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const customColors = isDark ? {
     primary: '#27AE60',
     background: '#121212',

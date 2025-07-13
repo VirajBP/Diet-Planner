@@ -70,7 +70,7 @@ function calculatePackageTotalCalories(pkg) {
 }
 
 const MealSuggestionsScreen = ({ navigation }) => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [customIngredients, setCustomIngredients] = useState('');

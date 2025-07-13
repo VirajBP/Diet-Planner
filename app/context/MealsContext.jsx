@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 import { mongodbService } from '../services/mongodb.service';
+import progressService from '../services/progressService';
 
 const MealsContext = createContext();
 
@@ -80,6 +81,14 @@ export const MealsProvider = ({ children }) => {
       };
       
       setMeals(prevMeals => [...(prevMeals || []), mealToAdd]);
+      
+      // Refresh progress statistics after adding a meal
+      try {
+        await progressService.refreshData();
+      } catch (error) {
+        console.warn('Failed to refresh progress statistics:', error);
+        // Don't throw error as meal was successfully added
+      }
       
       return newMeal;
     } catch (error) {

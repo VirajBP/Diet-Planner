@@ -93,7 +93,7 @@ const FREE_FEATURES = [
 ];
 
 const PremiumScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation();
   const customColors = isDark? FRESH_CALM_DARK:FRESH_CALM_LIGHT

@@ -41,7 +41,7 @@ const FRESH_CALM_DARK = {
 };
 
 const MealScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { meals, loading: mealsLoading, loadMeals, addMeal: addMealToContext, deleteMeal: deleteMealFromContext } = useMeals();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -403,11 +403,34 @@ const MealScreen = () => {
     try {
       setLoading(true);
       const calories = parseQuantityToCalories(newMeal.quantity, newMeal.unit, selectedSuggestion);
+      
+      // Calculate macronutrients based on selected suggestion or use default ratios
+      let protein = 0, carbs = 0, fat = 0;
+      if (selectedSuggestion && selectedSuggestion.units) {
+        const unitObj = selectedSuggestion.units.find(u => u.unit === newMeal.unit);
+        if (unitObj) {
+          const quantity = parseFloat(newMeal.quantity);
+          protein = Math.round((unitObj.protein || 0) * quantity);
+          carbs = Math.round((unitObj.carbs || 0) * quantity);
+          fat = Math.round((unitObj.fat || 0) * quantity);
+        }
+      } else {
+        // Default macronutrient ratios if no suggestion is selected
+        // 20% protein, 50% carbs, 30% fat (typical balanced meal)
+        protein = Math.round(calories * 0.2 / 4); // 4 calories per gram of protein
+        carbs = Math.round(calories * 0.5 / 4);   // 4 calories per gram of carbs
+        fat = Math.round(calories * 0.3 / 9);     // 9 calories per gram of fat
+      }
+      
       const mealData = {
         name: newMeal.name,
         calories,
         type: newMeal.type,
         quantity: `${newMeal.quantity} ${newMeal.unit}`,
+        protein,
+        carbs,
+        fat,
+        ingredients: selectedSuggestion?.ingredients || []
       };
       await addMealToContext(mealData);
       setNewMeal({ name: '', quantity: '', unit: 'plate', type: 'breakfast' });

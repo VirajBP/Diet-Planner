@@ -1,13 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    Image,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Button from '../components/ui/Button';
 import { useOnboarding } from '../context/OnboardingContext';
@@ -57,7 +57,7 @@ const steps = [
 const OnboardingScreen = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const { completeOnboarding } = useOnboarding();
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   const handleNext = async () => {

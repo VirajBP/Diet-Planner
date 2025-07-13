@@ -113,7 +113,7 @@ const FAQ_SECTIONS = [
 ];
 
 export default function HelpCenterScreen({ navigation }) {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
 
   return (

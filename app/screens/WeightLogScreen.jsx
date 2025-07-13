@@ -41,7 +41,7 @@ const FRESH_CALM_DARK = {
 };
 
 const WeightLogScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
@@ -295,12 +295,12 @@ const WeightLogScreen = () => {
           </View>
         </Modal>
         {/* Set Weight Goal Section (Free) */}
-        {/* <View style={[styles.bmiContainer, { backgroundColor: theme.colors.card }]}> 
-          <Text style={[styles.bmiTitle, { color: theme.colors.text }]}>Set Weight Goal</Text>
+        {/* <View style={[styles.bmiContainer, { backgroundColor: customColors.card }]}> 
+          <Text style={[styles.bmiTitle, { color: customColors.text }]}>Set Weight Goal</Text>
           <TextInput
-            style={[styles.input, { color: theme.colors.text, borderColor: theme.colors.border, flex: 1 }]}
+            style={[styles.input, { color: customColors.text, borderColor: customColors.border, flex: 1 }]}
             placeholder="Target Weight (kg)"
-            placeholderTextColor={theme.colors.text + '80'}
+            placeholderTextColor={customColors.text + '80'}
             keyboardType="numeric"
             value={weightGoal}
             onChangeText={setWeightGoal}

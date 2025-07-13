@@ -38,7 +38,7 @@ const FRESH_CALM_DARK = {
 };
 
 const CalorieCalculatorScreen = () => {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { user } = useAuth();
   const route = useRoute();
   const navigation = useNavigation();
@@ -126,8 +126,8 @@ const CalorieCalculatorScreen = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: customColors.background }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 16 , flexDirection: 'row', alignItems: 'center', gap: 10, margin: 10}}>
-          <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
-          <Text style={[styles.title, { color: theme.colors.text }]}>Calorie Calculator</Text>
+          <Ionicons name="arrow-back" size={24} color={customColors.text} />
+          <Text style={[styles.title, { color: customColors.text }]}>Calorie Calculator</Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>

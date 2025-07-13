@@ -3,6 +3,28 @@ import React, { useState } from 'react';
 import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 export const Picker = ({
   label,
   selectedValue,
@@ -14,6 +36,7 @@ export const Picker = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const { isDark } = useTheme();
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   
   // Handle both items and options props for backward compatibility
   const pickerOptions = options || items || [];
@@ -66,22 +89,22 @@ export const Picker = ({
 
   return (
     <View style={styles.container}>
-      {label && <Text style={[styles.label, { color: theme.colors.text }]}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: customColors.text }]}>{label}</Text>}
       <TouchableOpacity
         style={[styles.pickerButton, { 
-          backgroundColor: theme.colors.card,
-          borderColor: theme.colors.border
+          backgroundColor: customColors.card,
+          borderColor: customColors.border
         }]}
         onPress={() => setModalVisible(true)}
       >
         <Text style={[
           styles.pickerButtonText, 
           !selectedValue && styles.placeholder,
-          { color: theme.colors.text }
+          { color: customColors.text }
         ]}>
           {getDisplayText()}
         </Text>
-        <Ionicons name="chevron-down" size={20} color={theme.colors.text} />
+        <Ionicons name="chevron-down" size={20} color={customColors.text} />
       </TouchableOpacity>
 
       <Modal
@@ -95,11 +118,11 @@ export const Picker = ({
           activeOpacity={1}
           onPress={() => !multiple && setModalVisible(false)}
         >
-          <View style={[styles.modalContent, { backgroundColor: theme.colors.background }]}>
-            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
-              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>{label || 'Select Option'}</Text>
+          <View style={[styles.modalContent, { backgroundColor: customColors.background }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: customColors.border }]}>
+              <Text style={[styles.modalTitle, { color: customColors.text }]}>{label || 'Select Option'}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color={theme.colors.text} />
+                <Ionicons name="close" size={24} color={customColors.text} />
               </TouchableOpacity>
             </View>
             <ScrollView>
@@ -108,28 +131,28 @@ export const Picker = ({
                   key={option.value}
                   style={[
                     styles.option,
-                    isSelected(option.value) && [styles.selectedOption, { backgroundColor: theme.colors.primary + '20' }],
-                    { borderBottomColor: theme.colors.border }
+                    isSelected(option.value) && [styles.selectedOption, { backgroundColor: customColors.primary + '20' }],
+                    { borderBottomColor: customColors.border }
                   ]}
                   onPress={() => handleSelect(option.value)}
                 >
                   <Text style={[
                     styles.optionText,
-                    isSelected(option.value) && [styles.selectedOptionText, { color: theme.colors.primary }],
-                    { color: theme.colors.text }
+                    isSelected(option.value) && [styles.selectedOptionText, { color: customColors.primary }],
+                    { color: customColors.text }
                   ]}>
                     {option.label}
                   </Text>
                   {isSelected(option.value) && (
-                    <Ionicons name="checkmark" size={20} color={theme.colors.primary} />
+                    <Ionicons name="checkmark" size={20} color={customColors.primary} />
                   )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
             {multiple && (
-              <View style={[styles.modalFooter, { borderTopColor: theme.colors.border }]}>
+              <View style={[styles.modalFooter, { borderTopColor: customColors.border }]}>
                 <TouchableOpacity
-                  style={[styles.doneButton, { backgroundColor: theme.colors.primary }]}
+                  style={[styles.doneButton, { backgroundColor: customColors.primary }]}
                   onPress={() => setModalVisible(false)}
                 >
                   <Text style={[styles.doneButtonText, { color: isDark ? '#000000' : '#FFFFFF' }]}>

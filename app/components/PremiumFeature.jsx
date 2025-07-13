@@ -11,9 +11,32 @@ import { useTheme } from '../context/ThemeContext';
 import MongoDBService from '../services/mongodb.service';
 import Card from './ui/Card';
 
+const FRESH_CALM_LIGHT = {
+  primary: '#2ECC71', // Mint Green
+  secondary: '#A3E4D7',
+  background: '#FDFEFE',
+  surface: '#FFFFFF',
+  text: '#1C1C1C',
+  card: '#FFFFFF',
+  border: '#A3E4D7',
+  error: '#FF5252',
+};
+
+const FRESH_CALM_DARK = {
+  primary: '#27AE60',
+  secondary: '#48C9B0',
+  background: '#121212',
+  surface: '#1E1E1E',
+  text: '#FAFAFA',
+  card: '#1E1E1E',
+  border: '#48C9B0',
+  error: '#FF5252',
+};
+
 const PremiumFeature = ({ children, featureName }) => {
   const navigation = useNavigation();
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
+  const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   const [isPremium, setIsPremium] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -46,18 +69,18 @@ const PremiumFeature = ({ children, featureName }) => {
     return (
       <>
         <TouchableOpacity
-          style={[styles.container, { backgroundColor: theme.colors.card }]}
+          style={[styles.container, { backgroundColor: customColors.card }]}
           onPress={() => setShowModal(true)}
         >
           <View style={styles.content}>
-            <Text style={[styles.title, { color: theme.colors.text }]}>
+            <Text style={[styles.title, { color: customColors.text }]}>
               🔒 Premium Feature
             </Text>
-            <Text style={[styles.description, { color: theme.colors.text }]}>
+            <Text style={[styles.description, { color: customColors.text }]}>
               Upgrade to access {featureName}
             </Text>
             <TouchableOpacity
-              style={[styles.upgradeButton, { backgroundColor: theme.colors.primary }]}
+              style={[styles.upgradeButton, { backgroundColor: customColors.primary }]}
               onPress={handleUpgradePress}
             >
               <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
@@ -72,24 +95,24 @@ const PremiumFeature = ({ children, featureName }) => {
           onRequestClose={() => setShowModal(false)}
         >
           <View style={styles.modalContainer}>
-            <Card style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
-              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+            <Card style={[styles.modalContent, { backgroundColor: customColors.card }]}>
+              <Text style={[styles.modalTitle, { color: customColors.text }]}>
                 Premium Feature
               </Text>
-              <Text style={[styles.modalDescription, { color: theme.colors.text }]}>
+              <Text style={[styles.modalDescription, { color: customColors.text }]}>
                 {featureName} is a premium feature. Upgrade to unlock this and all other premium features!
               </Text>
               <View style={styles.modalButtons}>
                 <TouchableOpacity
-                  style={[styles.modalButton, { backgroundColor: theme.colors.border }]}
+                  style={[styles.modalButton, { backgroundColor: customColors.border }]}
                   onPress={() => setShowModal(false)}
                 >
-                  <Text style={[styles.modalButtonText, { color: theme.colors.text }]}>
+                  <Text style={[styles.modalButtonText, { color: customColors.text }]}>
                     Maybe Later
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.modalButton, { backgroundColor: theme.colors.primary }]}
+                  style={[styles.modalButton, { backgroundColor: customColors.primary }]}
                   onPress={handleUpgradePress}
                 >
                   <Text style={styles.modalButtonText}>
