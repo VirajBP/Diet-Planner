@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import StepTracker from '../components/StepTracker';
 import VideoPlayer from '../components/VideoPlayer';
 import { useTheme } from '../context/ThemeContext';
+import { mongodbService } from '../services/mongodb.service';
 // Uncomment the line below to add the debug component for testing background step tracking
 // import StepTrackerTest from '../components/StepTrackerTest';
 
@@ -247,7 +248,7 @@ const ExerciseScreen = () => {
   const customColors = isDark ? FRESH_CALM_DARK : FRESH_CALM_LIGHT;
   
   const [loading, setLoading] = useState(false);
-  const [exercises, setExercises] = useState(SAMPLE_EXERCISES);
+  const [exercises, setExercises] = useState([]);
   const [filteredExercises, setFilteredExercises] = useState(SAMPLE_EXERCISES);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -258,12 +259,11 @@ const ExerciseScreen = () => {
   const [pexelsVideos, setPexelsVideos] = useState([]);
   const [pexelsLoading, setPexelsLoading] = useState(false);
   const [pexelsError, setPexelsError] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log('useEffect for videos ran');
-    filterExercises();
-    fetchExerciseVideos();
-  }, [selectedCategory, searchQuery, exercises]);
+    fetchExercises();
+  }, [selectedCategory, searchQuery]);
 
   const filterExercises = () => {
     let filtered = exercises;
@@ -443,16 +443,20 @@ const ExerciseScreen = () => {
     </View>
   );
 
-  const fetchExerciseVideos = async () => {
-    setPexelsLoading(true);
-    setPexelsError(null);
+  const fetchExercises = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const videos = await fetchExerciseVideos('exercise', 10);
-      setPexelsVideos(videos);
+      const params = {};
+      if (selectedCategory && selectedCategory !== 'all') params.tag = selectedCategory;
+      if (searchQuery) params.name = searchQuery;
+      const data = await mongodbService.getExerciseVideos(params);
+      setExercises(data);
     } catch (err) {
-      setPexelsError('Failed to load exercise videos');
+      setError('Failed to load exercise videos');
+      setExercises([]);
     } finally {
-      setPexelsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -487,11 +491,13 @@ const ExerciseScreen = () => {
         {/* Uncomment the line below to add the debug component for testing background step tracking */}
         {/* <StepTrackerTest /> */}
 
+        {error && <Text style={{ color: customColors.error, marginBottom: 16 }}>{error}</Text>}
+
         <View style={styles.exercisesContainer}>
           {loading ? (
             <ActivityIndicator size="large" color={customColors.primary} style={styles.loading} />
-          ) : filteredExercises.length > 0 ? (
-            filteredExercises.map(renderExerciseCard)
+          ) : exercises.length > 0 ? (
+            exercises.map(renderExerciseCard)
           ) : (
             <View style={styles.emptyState}>
               <Ionicons name="fitness-outline" size={64} color={customColors.text + '40'} />

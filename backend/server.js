@@ -31,6 +31,7 @@ app.use('/api/chatbot', require('./routes/chatbot'));
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/progress', require('./routes/progress'));
 app.use('/api/pexels', require('./routes/pexels'));
+app.use('/api/exercise-videos', require('./routes/exerciseVideos'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

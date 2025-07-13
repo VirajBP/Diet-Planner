@@ -474,6 +474,19 @@ class MongoDBService {
       throw error;
     }
   }
+
+  async getExerciseVideos({ tag = '', name = '' } = {}) {
+    try {
+      const params = {};
+      if (tag) params.tag = tag;
+      if (name) params.name = name;
+      const response = await this.api.get('/exercise-videos', { params });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch exercise videos:', error);
+      throw error;
+    }
+  }
 }
 
 export default MongoDBService;
