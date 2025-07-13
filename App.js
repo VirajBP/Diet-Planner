@@ -1,4 +1,3 @@
-import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
 import { Alert, Text, View } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
@@ -7,7 +6,7 @@ import { AuthProvider } from './app/context/AuthContext';
 import { MealsProvider } from './app/context/MealsContext';
 import { OnboardingProvider } from './app/context/OnboardingContext';
 import { ThemeProvider, useTheme } from './app/context/ThemeContext';
-import RootNavigator from './app/navigation';
+import AppNavigation from './app/navigation';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
@@ -52,9 +51,7 @@ function AppContent() {
   const { theme } = useTheme();
   return (
     <PaperProvider theme={theme}>
-      <NavigationContainer theme={theme}>
-        <RootNavigator />
-      </NavigationContainer>
+      <AppNavigation />
     </PaperProvider>
   );
 }
