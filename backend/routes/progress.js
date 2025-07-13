@@ -6,6 +6,10 @@ const WaterLog = require('../models/WaterLog');
 const WeightLog = require('../models/WeightLog');
 const User = require('../models/User');
 
+// Constants for calorie calculations
+const WEIGHT_LOSS_DEFICIT = 500; // 500 calorie deficit for weight loss
+const WEIGHT_GAIN_SURPLUS = 500; // 500 calorie surplus for weight gain
+
 // Get progress statistics for the last 30 days
 router.get('/statistics', auth, async (req, res) => {
   try {

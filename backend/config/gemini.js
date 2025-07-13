@@ -16,18 +16,29 @@ module.exports = {
     bufferPercentage: 0.1, // Stop at 90% of daily limit (1350 requests)
     conservativeMode: true, // Enable conservative mode
     maxRequestsPerHour: 60, // Limit requests per hour
+    emergencyBuffer: 0.05, // Emergency stop at 95% (1425 requests)
   },
   
   // Fallback settings
   fallback: {
     enableAfterFailures: 3, // Enable fallback after 3 consecutive failures
     useFallbackResponses: true,
+    enableImmediateFallback: true, // Use fallback immediately when quota exceeded
   },
   
   // Queue settings
   queue: {
     maxQueueSize: 10, // Maximum number of queued requests
     processInterval: 1000, // Process queue every 1 second
+    timeoutMs: 30000, // 30 second timeout for queued requests
+  },
+  
+  // Logging settings
+  logging: {
+    enableDetailedLogs: true,
+    logQuotaStatus: true,
+    logRetryAttempts: true,
+    logQueueStatus: true,
   },
   
   // Error messages
@@ -36,6 +47,8 @@ module.exports = {
     quotaExceeded: "I've reached my daily limit. Please try again tomorrow.",
     connectionError: "I'm having trouble connecting right now. Please try again in a moment.",
     fallbackNote: "(Note: Using fallback response due to API issues)",
-    approachingLimit: "I'm approaching my daily limit. Using basic responses for now."
+    approachingLimit: "I'm approaching my daily limit. Using basic responses for now.",
+    queueFull: "The system is busy. Please try again in a moment.",
+    hourlyLimitReached: "Hourly limit reached. Please try again in a few minutes."
   }
 }; 
