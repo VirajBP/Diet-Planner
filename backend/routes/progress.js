@@ -181,7 +181,7 @@ router.get('/statistics', auth, async (req, res) => {
       if (user.profile.goal === 'lose') {
         goalCalories = Math.round(tdee - WEIGHT_LOSS_DEFICIT);
       } else if (user.profile.goal === 'gain') {
-        goalCalories = Math.round(tdee + 500);
+        goalCalories = Math.round(tdee + WEIGHT_GAIN_SURPLUS);
       } else {
         goalCalories = Math.round(tdee);
       }
@@ -268,9 +268,9 @@ function generateInsights(dailyData, weeklyData, user) {
     const tdee = bmr * activityMultipliers[user.profile.activityLevel] || 1.375;
     
     if (user.profile.goal === 'lose') {
-      goalCalories = Math.round(tdee - 500);
+      goalCalories = Math.round(tdee - WEIGHT_LOSS_DEFICIT);
     } else if (user.profile.goal === 'gain') {
-      goalCalories = Math.round(tdee + 500);
+      goalCalories = Math.round(tdee + WEIGHT_GAIN_SURPLUS);
     } else {
       goalCalories = Math.round(tdee);
     }
@@ -432,7 +432,7 @@ function calculateGoalCalories(profile) {
   if (profile.goal === 'lose') {
     return Math.round(tdee - WEIGHT_LOSS_DEFICIT);
   } else if (profile.goal === 'gain') {
-    return Math.round(tdee + 500);
+    return Math.round(tdee + WEIGHT_GAIN_SURPLUS);
   } else {
     return Math.round(tdee);
   }
