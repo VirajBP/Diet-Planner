@@ -1,6 +1,6 @@
 module.exports = {
   // Gemini API Configuration
-  model: "gemini-1.5-pro",
+  model: "gemini-2.5-flash-live",
   
   // Project Configuration (Optional - for advanced usage)
   project: {

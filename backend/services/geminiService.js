@@ -73,9 +73,9 @@ class GeminiService {
   canMakeRequest() {
     this.resetQuotaDaily();
     
-    // If quota exceeded, don't make requests
+    // PERMANENT SOLUTION: If quota exceeded, NEVER make requests
     if (this.quotaExceeded) {
-      this.logQuotaStatus('QUOTA_EXCEEDED');
+      console.log(`🚫 PERMANENT BLOCK: Quota exceeded. No API calls allowed.`);
       return false;
     }
     
@@ -87,17 +87,15 @@ class GeminiService {
     
     // Check hourly limit
     if (this.hourlyRequests >= config.quota.maxRequestsPerHour) {
-      this.logQuotaStatus('HOURLY_LIMIT_REACHED');
+      console.log(`🚫 Hourly limit reached: ${this.hourlyRequests}/${config.quota.maxRequestsPerHour}`);
       return false;
     }
     
-    // Only check daily buffer if we've made some requests
-    if (this.dailyRequests > 0) {
-      const bufferLimit = Math.floor(config.rateLimit.requestsPerDay * (1 - config.quota.bufferPercentage));
-      if (this.dailyRequests >= bufferLimit) {
-        this.logQuotaStatus('DAILY_BUFFER_REACHED');
-        return false;
-      }
+    // Check daily buffer - be more conservative
+    const bufferLimit = Math.floor(config.rateLimit.requestsPerDay * (1 - config.quota.bufferPercentage));
+    if (this.dailyRequests >= bufferLimit) {
+      console.log(`🚫 Daily buffer reached: ${this.dailyRequests}/${bufferLimit}`);
+      return false;
     }
     
     return true;
@@ -224,43 +222,24 @@ class GeminiService {
       this.consecutiveFailures++;
       this.totalFailures++;
       
-      // Enhanced rate limiting handling with detailed logging
+      // PERMANENT SOLUTION: If we get a 429 error, immediately mark quota as exceeded and use fallback
       if (error.status === 429 || error.message.includes('quota') || error.message.includes('Too Many Requests')) {
-        // Only mark quota as exceeded if we're actually at the limit
-        const quotaStatus = this.getQuotaStatus();
-        const bufferLimit = Math.floor(config.rateLimit.requestsPerDay * (1 - config.quota.bufferPercentage));
+        // IMMEDIATELY mark quota as exceeded - no more API calls
+        this.quotaExceeded = true;
+        console.log(`🚫 PERMANENT SOLUTION: API quota exhausted. Marking as exceeded permanently.`);
+        console.log(`🚫 No more API calls will be made until daily reset.`);
         
-        // Check if we're actually at the daily limit
-        if (this.dailyRequests >= bufferLimit) {
-          this.quotaExceeded = true;
-          console.log(`🚫 Daily quota limit reached (${this.dailyRequests}/${bufferLimit}). Marking as exceeded.`);
-        }
-        
-        // Log detailed quota information
-        this.logQuotaStatus('RATE_LIMITED');
-        console.log(`🚫 Rate limited! Retry ${retryCount + 1}/${config.rateLimit.maxRetries}`);
-        console.log(`📊 Remaining daily: ${quotaStatus.remainingDailyRequests}, hourly: ${quotaStatus.remainingHourlyRequests}`);
-        
-        // Only retry if we haven't actually exceeded the quota
-        if (retryCount < config.rateLimit.maxRetries && !this.quotaExceeded) {
-          // Exponential backoff: wait 2^retryCount seconds
-          const delay = Math.pow(config.rateLimit.retryDelayMultiplier, retryCount) * 1000;
-          console.log(`⏳ Retrying in ${delay}ms (attempt ${retryCount + 1}/${config.rateLimit.maxRetries})`);
-          await this.sleep(delay);
-          return this.makeRequest(userQuery, retryCount + 1);
-        } else {
-          console.log(`❌ Max retries reached or quota exceeded. Using fallback response.`);
-          const fallbackMessage = this.getFallbackResponse(userQuery);
-          return {
-            success: true,
-            message: fallbackMessage + "\n\n" + config.messages.rateLimited,
-            fallback: true,
-            quotaStatus: this.getQuotaStatus()
-          };
-        }
+        // Use fallback immediately - no retries
+        const fallbackMessage = this.getFallbackResponse(userQuery);
+        return {
+          success: true,
+          message: fallbackMessage + "\n\n" + config.messages.quotaExceeded,
+          fallback: true,
+          quotaStatus: this.getQuotaStatus()
+        };
       }
       
-      // Enhanced consecutive failures handling
+      // Handle other errors (not quota-related)
       if (this.consecutiveFailures >= config.fallback.enableAfterFailures) {
         console.log(`🔄 Using fallback after ${this.consecutiveFailures} consecutive failures`);
         const fallbackMessage = this.getFallbackResponse(userQuery);
