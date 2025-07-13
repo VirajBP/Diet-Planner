@@ -4,6 +4,7 @@ class ProgressService {
   constructor() {
     this.cache = new Map();
     this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    this.pendingRequests = new Map(); // Prevent duplicate requests
   }
 
   async getStatistics() {
@@ -20,6 +21,7 @@ class ProgressService {
     try {
       // Clear cache to force fresh data fetch
       this.cache.clear();
+      this.pendingRequests.clear();
       // Fetch fresh statistics
       await this.getStatistics();
       console.log('Progress statistics refreshed successfully');
@@ -30,73 +32,93 @@ class ProgressService {
   }
 
   async getDailyData() {
-    try {
+    const cacheKey = 'dailyData';
+    return this.getCachedData(cacheKey, async () => {
       const data = await this.getStatistics();
       return data.dailyData || [];
-    } catch (error) {
-      console.error('Error fetching daily data:', error);
-      return [];
-    }
+    });
   }
 
   async getWeeklyData() {
-    try {
+    const cacheKey = 'weeklyData';
+    return this.getCachedData(cacheKey, async () => {
       const data = await this.getStatistics();
       return data.weeklyData || [];
-    } catch (error) {
-      console.error('Error fetching weekly data:', error);
-      return [];
-    }
+    });
   }
 
   async getMonthlyData() {
-    try {
+    const cacheKey = 'monthlyData';
+    return this.getCachedData(cacheKey, async () => {
       const data = await this.getStatistics();
       return data.monthlyData || [];
-    } catch (error) {
-      console.error('Error fetching monthly data:', error);
-      return [];
-    }
+    });
   }
 
   async getStreaks() {
-    try {
+    const cacheKey = 'streaks';
+    return this.getCachedData(cacheKey, async () => {
       const data = await this.getStatistics();
       return data.streaks || {};
-    } catch (error) {
-      console.error('Error fetching streaks:', error);
-      return {};
-    }
+    });
   }
 
   async getInsights() {
-    try {
+    const cacheKey = 'insights';
+    return this.getCachedData(cacheKey, async () => {
       const data = await this.getStatistics();
       return data.insights || [];
-    } catch (error) {
-      console.error('Error fetching insights:', error);
-      return [];
-    }
+    });
   }
 
   async getDetailedStatistics() {
-    try {
+    const cacheKey = 'detailedStatistics';
+    return this.getCachedData(cacheKey, async () => {
       const data = await this.getStatistics();
       return data.statistics || {};
-    } catch (error) {
-      console.error('Error fetching detailed statistics:', error);
-      return {};
-    }
+    });
   }
 
   async getGoals() {
-    try {
+    const cacheKey = 'goals';
+    return this.getCachedData(cacheKey, async () => {
       const data = await this.getStatistics();
       return data.goals || {};
-    } catch (error) {
-      console.error('Error fetching goals:', error);
-      return {};
+    });
+  }
+
+  // Helper method to handle caching and prevent duplicate requests
+  async getCachedData(cacheKey, fetchFunction) {
+    // Check if we have a pending request for this key
+    if (this.pendingRequests.has(cacheKey)) {
+      return this.pendingRequests.get(cacheKey);
     }
+
+    // Check cache first
+    const cached = this.cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.data;
+    }
+
+    // Create a new promise for this request
+    const promise = fetchFunction().then(data => {
+      // Cache the result
+      this.cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      // Remove from pending requests
+      this.pendingRequests.delete(cacheKey);
+      return data;
+    }).catch(error => {
+      // Remove from pending requests on error
+      this.pendingRequests.delete(cacheKey);
+      throw error;
+    });
+
+    // Store the promise to prevent duplicate requests
+    this.pendingRequests.set(cacheKey, promise);
+    return promise;
   }
 }
 

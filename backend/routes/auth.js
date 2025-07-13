@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const config = require('../config');
@@ -285,18 +286,79 @@ router.post('/forgot-password', async (req, res) => {
     user.resetPasswordExpires = resetTokenExpiry;
     await user.save();
 
-    // TODO: Send email with reset link
-    // For now, we'll just return the token (in production, send via email)
-    console.log('Password reset token for', email, ':', resetToken);
+    // Configure email transporter
+    const transporter = nodemailer.createTransporter({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+      }
+    });
+
+    // Create reset URL
+    const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+
+    // Email content
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Reset Your NutriPulse Password',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="color: #2ECC71; margin-bottom: 10px;">NutriPulse</h2>
+            <h3 style="color: #333;">Password Reset Request</h3>
+          </div>
+          
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <p style="color: #333; font-size: 16px; line-height: 1.5;">
+              You requested a password reset for your NutriPulse account.
+            </p>
+            <p style="color: #333; font-size: 16px; line-height: 1.5;">
+              Click the button below to reset your password:
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" 
+               style="background-color: #2ECC71; color: white; padding: 15px 30px; 
+                      text-decoration: none; border-radius: 25px; font-size: 16px; 
+                      font-weight: bold; display: inline-block;">
+              Reset Password
+            </a>
+          </div>
+          
+          <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+            <p style="color: #856404; font-size: 14px; margin: 0;">
+              <strong>Important:</strong> This link expires in 1 hour. If you didn't request this password reset, 
+              please ignore this email and your password will remain unchanged.
+            </p>
+          </div>
+          
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+            <p style="color: #666; font-size: 12px; text-align: center;">
+              If the button doesn't work, copy and paste this link into your browser:<br>
+              <a href="${resetUrl}" style="color: #2ECC71;">${resetUrl}</a>
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    // Send email
+    await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent to:', email);
     
     res.json({ 
-      message: 'If an account with this email exists, you will receive a password reset link shortly.',
-      // Remove this in production - only for development/testing
-      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
+      message: 'If an account with this email exists, you will receive a password reset link shortly.'
     });
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    
+    // If email fails, still return success to prevent email enumeration
+    res.json({ 
+      message: 'If an account with this email exists, you will receive a password reset link shortly.'
+    });
   }
 });
 

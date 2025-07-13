@@ -41,6 +41,7 @@ router.get('/statistics', auth, async (req, res) => {
     const mealsByDate = {};
     meals.forEach(meal => {
       const dateStr = meal.date.toISOString().split('T')[0];
+      console.log(`Processing meal: ${meal.name} on ${dateStr} with calories: ${meal.calories}`);
       if (!mealsByDate[dateStr]) {
         mealsByDate[dateStr] = {
           date: dateStr,
@@ -57,6 +58,12 @@ router.get('/statistics', auth, async (req, res) => {
       mealsByDate[dateStr].totalFat += meal.fat || 0;
       mealsByDate[dateStr].mealCount += 1;
     });
+
+    console.log('Meals by date:', Object.keys(mealsByDate).map(date => ({
+      date,
+      mealCount: mealsByDate[date].mealCount,
+      calories: mealsByDate[date].totalCalories
+    })));
 
     // Process water logs data by date
     const waterByDate = {};
@@ -90,7 +97,7 @@ router.get('/statistics', auth, async (req, res) => {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
       
-      dailyData.push({
+      const dayData = {
         date: dateStr,
         calories: mealsByDate[dateStr]?.totalCalories || 0,
         protein: mealsByDate[dateStr]?.totalProtein || 0,
@@ -100,7 +107,14 @@ router.get('/statistics', auth, async (req, res) => {
         water: waterByDate[dateStr]?.totalWater || 0,
         waterLogCount: waterByDate[dateStr]?.logCount || 0,
         weight: weightByDate[dateStr]?.weight || null
-      });
+      };
+      
+      // Debug logging for recent days
+      if (i < 7) {
+        console.log(`Day ${i}: ${dateStr} - meals: ${dayData.mealCount}, calories: ${dayData.calories}`);
+      }
+      
+      dailyData.push(dayData);
     }
 
     // Generate monthly data (last 3 months)
@@ -226,15 +240,25 @@ function calculateStreak(data, field, goal) {
   let currentStreak = 0;
   let maxStreak = 0;
   
+  console.log(`Calculating streak for ${field} with goal ${goal}`);
+  console.log(`Data points: ${data.length}`);
+  
   for (let i = data.length - 1; i >= 0; i--) {
     const value = data[i][field];
+    const date = data[i].date;
+    console.log(`Day ${i}: ${date} - ${field}: ${value}, goal: ${goal}`);
+    
     if (value >= goal) {
       currentStreak++;
       maxStreak = Math.max(maxStreak, currentStreak);
+      console.log(`  ✓ Streak continues: ${currentStreak}`);
     } else {
+      console.log(`  ✗ Streak broken: ${currentStreak}`);
       currentStreak = 0;
     }
   }
+  
+  console.log(`Final streak for ${field}: current=${currentStreak}, max=${maxStreak}`);
   
   return {
     current: currentStreak,

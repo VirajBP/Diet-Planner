@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BarChart, LineChart, ProgressChart } from 'react-native-chart-kit';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,31 +45,63 @@ const ProgressStatisticsScreen = () => {
     const [goals, setGoals] = useState({});
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('daily'); // daily, weekly, monthly
+    const loadingRef = useRef(false);
 
   useEffect(() => {
     loadProgressData();
   }, []);
 
-  // Refresh data when screen comes into focus
+  // Refresh data when screen comes into focus, but prevent multiple calls
   useFocusEffect(
     useCallback(() => {
-      loadProgressData();
+      if (!loadingRef.current) {
+        loadProgressData();
+      }
     }, [])
   );
 
   const loadProgressData = async () => {
+    if (loadingRef.current) {
+      console.log('Progress data loading already in progress, skipping...');
+      return;
+    }
+
     try {
+      loadingRef.current = true;
       setLoading(true);
       setError(null);
       
+      console.log('Loading progress data...');
+      
       const [daily, weekly, monthly, streaksData, insightsData, statisticsData, goalsData] = await Promise.all([
-        progressService.getDailyData(),
-        progressService.getWeeklyData(),
-        progressService.getMonthlyData(),
-        progressService.getStreaks(),
-        progressService.getInsights(),
-        progressService.getDetailedStatistics(),
-        progressService.getGoals()
+        progressService.getDailyData().catch(err => {
+          console.error('Error fetching daily data:', err);
+          return [];
+        }),
+        progressService.getWeeklyData().catch(err => {
+          console.error('Error fetching weekly data:', err);
+          return [];
+        }),
+        progressService.getMonthlyData().catch(err => {
+          console.error('Error fetching monthly data:', err);
+          return [];
+        }),
+        progressService.getStreaks().catch(err => {
+          console.error('Error fetching streaks:', err);
+          return {};
+        }),
+        progressService.getInsights().catch(err => {
+          console.error('Error fetching insights:', err);
+          return [];
+        }),
+        progressService.getDetailedStatistics().catch(err => {
+          console.error('Error fetching detailed statistics:', err);
+          return {};
+        }),
+        progressService.getGoals().catch(err => {
+          console.error('Error fetching goals:', err);
+          return {};
+        })
       ]);
       
       setDailyData(daily);
@@ -79,11 +111,14 @@ const ProgressStatisticsScreen = () => {
       setInsights(insightsData);
       setStatistics(statisticsData);
       setGoals(goalsData);
+      
+      console.log('Progress data loaded successfully');
     } catch (err) {
       console.error('Error loading progress data:', err);
       setError('Failed to load progress data');
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
   };
 
@@ -217,32 +252,74 @@ const ProgressStatisticsScreen = () => {
     const avgCarbs = Math.round(recentDays.reduce((sum, day) => sum + day.carbs, 0) / recentDays.length);
     const avgFat = Math.round(recentDays.reduce((sum, day) => sum + day.fat, 0) / recentDays.length);
     
+    // Calculate goals based on typical recommendations
+    // Protein: 1.6-2.2g per kg body weight (assuming 70kg average)
+    // Carbs: 45-65% of total calories (assuming 2000 cal = 225-325g)
+    // Fat: 20-35% of total calories (assuming 2000 cal = 44-78g)
+    const proteinGoal = 140; // 2g per kg for 70kg person
+    const carbsGoal = 250;   // 50% of 2000 calories = 250g
+    const fatGoal = 65;      // 30% of 2000 calories = 65g
+    
+    // Calculate progress percentages (capped at 1.0)
+    const proteinProgress = Math.min(avgProtein / proteinGoal, 1.0);
+    const carbsProgress = Math.min(avgCarbs / carbsGoal, 1.0);
+    const fatProgress = Math.min(avgFat / fatGoal, 1.0);
+    
     const data = {
       labels: ['Protein', 'Carbs', 'Fat'],
-      data: [avgProtein / 100, avgCarbs / 100, avgFat / 100] // Normalize to 0-1 range
+      data: [proteinProgress, carbsProgress, fatProgress]
     };
 
     return (
-      <ProgressChart
-        data={data}
-        width={width - 40}
-        height={220}
-        chartConfig={{
-          backgroundColor: customColors.card,
-          backgroundGradientFrom: customColors.card,
-          backgroundGradientTo: customColors.card,
-          decimalPlaces: 0,
-          color: (opacity = 1) => customColors.text,
-          labelColor: (opacity = 1) => customColors.text,
-          style: {
+      <View style={[styles.card, { backgroundColor: customColors.card, borderColor: customColors.border }]}>
+        <Text style={[styles.cardTitle, { color: customColors.text }]}>Macronutrient Progress (7-day avg)</Text>
+        <ProgressChart
+          data={data}
+          width={width - 80}
+          height={180}
+          strokeWidth={16}
+          radius={32}
+          chartConfig={{
+            backgroundColor: customColors.card,
+            backgroundGradientFrom: customColors.card,
+            backgroundGradientTo: customColors.card,
+            decimalPlaces: 0,
+            color: (opacity = 1) => customColors.text,
+            labelColor: (opacity = 1) => customColors.text,
+            style: {
+              borderRadius: 16
+            },
+            propsForLabels: {
+              fontSize: 12,
+              fontWeight: 'bold'
+            }
+          }}
+          style={{
+            marginVertical: 8,
             borderRadius: 16
-          }
-        }}
-        style={{
-          marginVertical: 8,
-          borderRadius: 16
-        }}
-      />
+          }}
+        />
+        <View style={styles.macroDetails}>
+          <View style={styles.macroDetail}>
+            <Text style={[styles.macroLabel, { color: customColors.primary }]}>Protein</Text>
+            <Text style={[styles.macroValue, { color: customColors.text }]}>
+              {avgProtein}g / {proteinGoal}g ({Math.round(proteinProgress * 100)}%)
+            </Text>
+          </View>
+          <View style={styles.macroDetail}>
+            <Text style={[styles.macroLabel, { color: customColors.secondary }]}>Carbs</Text>
+            <Text style={[styles.macroValue, { color: customColors.text }]}>
+              {avgCarbs}g / {carbsGoal}g ({Math.round(carbsProgress * 100)}%)
+            </Text>
+          </View>
+          <View style={styles.macroDetail}>
+            <Text style={[styles.macroLabel, { color: customColors.error }]}>Fat</Text>
+            <Text style={[styles.macroValue, { color: customColors.text }]}>
+              {avgFat}g / {fatGoal}g ({Math.round(fatProgress * 100)}%)
+            </Text>
+          </View>
+        </View>
+      </View>
     );
   };
 
@@ -691,6 +768,23 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: 'white',
     fontWeight: '600',
+  },
+  macroDetails: {
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  macroDetail: {
+    alignItems: 'center',
+  },
+  macroLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  macroValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
