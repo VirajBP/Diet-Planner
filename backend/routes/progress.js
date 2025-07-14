@@ -206,7 +206,7 @@ router.get('/statistics', auth, async (req, res) => {
 
     const calorieStreak = calculateStreak(dailyData, 'calories', goalCalories);
     const waterStreak = calculateStreak(dailyData, 'water', goalWater);
-    const mealStreak = calculateStreak(dailyData, 'mealCount', 1);
+    const mealStreak = calculateStreak(dailyData, 'mealCount', 1, true);
 
     // Generate insights and statistics
     const insights = generateInsights(dailyData, weeklyData, user);
@@ -236,34 +236,56 @@ router.get('/statistics', auth, async (req, res) => {
 });
 
 // Helper function to calculate streaks
-function calculateStreak(data, field, goal) {
-  let currentStreak = 0;
-  let maxStreak = 0;
-  
-  console.log(`Calculating streak for ${field} with goal ${goal}`);
-  console.log(`Data points: ${data.length}`);
-  
-  for (let i = data.length - 1; i >= 0; i--) {
-    const value = data[i][field];
-    const date = data[i].date;
-    console.log(`Day ${i}: ${date} - ${field}: ${value}, goal: ${goal}`);
-    
-    if (value >= goal) {
-      currentStreak++;
-      maxStreak = Math.max(maxStreak, currentStreak);
-      console.log(`  ✓ Streak continues: ${currentStreak}`);
-    } else {
-      console.log(`  ✗ Streak broken: ${currentStreak}`);
-      currentStreak = 0;
+function calculateStreak(data, field, goal, isMealStreak = false) {
+  if (!isMealStreak) {
+    let currentStreak = 0;
+    let maxStreak = 0;
+    for (let i = data.length - 1; i >= 0; i--) {
+      const value = data[i][field];
+      if (value >= goal) {
+        currentStreak++;
+        maxStreak = Math.max(maxStreak, currentStreak);
+      } else {
+        currentStreak = 0;
+      }
     }
+    return {
+      current: currentStreak,
+      max: maxStreak
+    };
+  } else {
+    // New meal streak logic
+    let currentStreak = 0;
+    let yesterdayHadMeal = false;
+    for (let i = data.length - 1; i >= 0; i--) {
+      const value = data[i][field];
+      if (i === data.length - 1) {
+        // Today
+        if (value >= goal) {
+          currentStreak = 1;
+          yesterdayHadMeal = true;
+        } else {
+          currentStreak = 0;
+          yesterdayHadMeal = false;
+        }
+      } else {
+        if (value >= goal && yesterdayHadMeal) {
+          currentStreak++;
+          yesterdayHadMeal = true;
+        } else if (value >= goal && !yesterdayHadMeal) {
+          currentStreak = 1;
+          yesterdayHadMeal = true;
+        } else {
+          currentStreak = 0;
+          yesterdayHadMeal = false;
+        }
+      }
+    }
+    return {
+      current: currentStreak,
+      max: currentStreak // For this logic, max is same as current
+    };
   }
-  
-  console.log(`Final streak for ${field}: current=${currentStreak}, max=${maxStreak}`);
-  
-  return {
-    current: currentStreak,
-    max: maxStreak
-  };
 }
 
 // Helper function to generate insights

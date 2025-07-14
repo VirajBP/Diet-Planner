@@ -247,23 +247,21 @@ const ProgressStatisticsScreen = () => {
   const renderMacroChart = () => {
     if (dailyData.length === 0) return null;
     
-    const recentDays = dailyData.slice(-7);
-    const avgProtein = Math.round(recentDays.reduce((sum, day) => sum + day.protein, 0) / recentDays.length);
-    const avgCarbs = Math.round(recentDays.reduce((sum, day) => sum + day.carbs, 0) / recentDays.length);
-    const avgFat = Math.round(recentDays.reduce((sum, day) => sum + day.fat, 0) / recentDays.length);
+    const recentDays = dailyData.slice(-7).filter(day => day.protein > 0 || day.carbs > 0 || day.fat > 0);
+    if (recentDays.length === 0) return null;
+
+    const avgProtein = Math.round(recentDays.reduce((sum, day) => sum + (day.protein || 0), 0) / recentDays.length);
+    const avgCarbs = Math.round(recentDays.reduce((sum, day) => sum + (day.carbs || 0), 0) / recentDays.length);
+    const avgFat = Math.round(recentDays.reduce((sum, day) => sum + (day.fat || 0), 0) / recentDays.length);
     
-    // Calculate goals based on typical recommendations
-    // Protein: 1.6-2.2g per kg body weight (assuming 70kg average)
-    // Carbs: 45-65% of total calories (assuming 2000 cal = 225-325g)
-    // Fat: 20-35% of total calories (assuming 2000 cal = 44-78g)
-    const proteinGoal = 140; // 2g per kg for 70kg person
-    const carbsGoal = 250;   // 50% of 2000 calories = 250g
-    const fatGoal = 65;      // 30% of 2000 calories = 65g
+    const proteinGoal = 140;
+    const carbsGoal = 250;
+    const fatGoal = 65;
     
-    // Calculate progress percentages (capped at 1.0)
-    const proteinProgress = Math.min(avgProtein / proteinGoal, 1.0);
-    const carbsProgress = Math.min(avgCarbs / carbsGoal, 1.0);
-    const fatProgress = Math.min(avgFat / fatGoal, 1.0);
+    // Defensive: avoid division by zero
+    const proteinProgress = proteinGoal > 0 ? Math.min(Math.max(avgProtein / proteinGoal, 0), 1.0) : 0;
+    const carbsProgress = carbsGoal > 0 ? Math.min(Math.max(avgCarbs / carbsGoal, 0), 1.0) : 0;
+    const fatProgress = fatGoal > 0 ? Math.min(Math.max(avgFat / fatGoal, 0), 1.0) : 0;
     
     const data = {
       labels: ['Protein', 'Carbs', 'Fat'],
@@ -271,7 +269,7 @@ const ProgressStatisticsScreen = () => {
     };
 
     return (
-      <View style={[styles.card, { backgroundColor: customColors.card, borderColor: customColors.border }]}>
+      <View style={[styles.card, { backgroundColor: customColors.card, borderColor: customColors.border }]}> 
         <Text style={[styles.cardTitle, { color: customColors.text }]}>Macronutrient Progress (7-day avg)</Text>
         <ProgressChart
           data={data}
@@ -302,21 +300,15 @@ const ProgressStatisticsScreen = () => {
         <View style={styles.macroDetails}>
           <View style={styles.macroDetail}>
             <Text style={[styles.macroLabel, { color: customColors.primary }]}>Protein</Text>
-            <Text style={[styles.macroValue, { color: customColors.text }]}>
-              {avgProtein}g / {proteinGoal}g ({Math.round(proteinProgress * 100)}%)
-            </Text>
+            <Text style={[styles.macroValue, { color: customColors.text }]}> {avgProtein}g / {proteinGoal}g ({Math.round(proteinProgress * 100)}%) </Text>
           </View>
           <View style={styles.macroDetail}>
             <Text style={[styles.macroLabel, { color: customColors.secondary }]}>Carbs</Text>
-            <Text style={[styles.macroValue, { color: customColors.text }]}>
-              {avgCarbs}g / {carbsGoal}g ({Math.round(carbsProgress * 100)}%)
-            </Text>
+            <Text style={[styles.macroValue, { color: customColors.text }]}> {avgCarbs}g / {carbsGoal}g ({Math.round(carbsProgress * 100)}%) </Text>
           </View>
           <View style={styles.macroDetail}>
             <Text style={[styles.macroLabel, { color: customColors.error }]}>Fat</Text>
-            <Text style={[styles.macroValue, { color: customColors.text }]}>
-              {avgFat}g / {fatGoal}g ({Math.round(fatProgress * 100)}%)
-            </Text>
+            <Text style={[styles.macroValue, { color: customColors.text }]}> {avgFat}g / {fatGoal}g ({Math.round(fatProgress * 100)}%) </Text>
           </View>
         </View>
       </View>
