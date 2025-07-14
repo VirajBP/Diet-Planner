@@ -97,6 +97,11 @@ const SettingsScreen = () => {
           onPress: () => navigation.navigate('HelpCenter'),
         },
         {
+          label: 'Feedback',
+          icon: 'chatbubble-outline',
+          onPress: () => navigation.navigate('Feedback'),
+        },
+        {
           label: 'Contact Us',
           icon: 'mail-outline',
           onPress: () => navigation.navigate('ContactUs'),

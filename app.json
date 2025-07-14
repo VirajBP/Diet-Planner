@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "NutriPulse",
+    "slug": "diet-planner-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.virajbp.dietplannerapp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "nutripulse",
+    "extra": {
+      "eas": {
+        "projectId": "40f4ba6f-0493-4a84-a9d5-703632207825"
+      }
+    }
+  }
+} 

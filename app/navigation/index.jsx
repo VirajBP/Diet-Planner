@@ -16,6 +16,7 @@ import CalorieCalculatorScreen from '../screens/CalorieCalculatorScreen';
 import ChatbotScreen from '../screens/ChatbotScreen';
 import ContactUsScreen from '../screens/ContactUsScreen';
 import ExerciseScreen from '../screens/ExerciseScreen';
+import FeedbackScreen from '../screens/FeedbackScreen';
 import HelpCenterScreen from '../screens/HelpCenterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -205,6 +206,7 @@ function MainStack() {
       <Stack.Screen name="Chatbot" component={ChatbotScreen}/>
       <Stack.Screen name="ProgressStatistics" component={ProgressStatisticsScreen}/>
       <Stack.Screen name="Exercise" component={ExerciseScreen}/>
+      <Stack.Screen name="Feedback" component={FeedbackScreen}/>
     </Stack.Navigator>
   );
 }
