@@ -1,0 +1,236 @@
+[
+  {
+    "_id": {
+      "$oid": "665a1cfa1a2f000001234001"
+    },
+    "name": "Poori",
+    "searchName": "poori",
+    "searchKeywords": [
+      "poori",
+      "puri",
+      "fried",
+      "wheat",
+      "vegetarian",
+      "indian"
+    ],
+    "units": [
+      {
+        "unit": "piece",
+        "calories": {
+          "$numberInt": "101"
+        },
+        "protein": {
+          "$numberDouble": "1.7"
+        },
+        "carbs": {
+          "$numberDouble": "9.6"
+        },
+        "fat": {
+          "$numberDouble": "6.3"
+        },
+        "_id": {
+          "$oid": "665a1cfa1a2f000001234101"
+        }
+      }
+    ],
+    "tags": [
+      "vegetarian"
+    ],
+    "ingredients": [
+      "wheat flour",
+      "water",
+      "salt",
+      "oil"
+    ],
+    "recipe": [
+      "Knead wheat flour, salt, and water into dough.",
+      "Roll into small discs.",
+      "Deep-fry until puffed and golden brown.",
+      "Serve hot."
+    ],
+    "category": "breakfast",
+    "difficulty": "medium",
+    "prepTime": {
+      "$numberInt": "30"
+    },
+    "cookTime": {
+      "$numberInt": "15"
+    },
+    "servings": {
+      "$numberInt": "1"
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1751627876115"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1751627876115"
+      }
+    },
+    "imageUrl": "",
+    "isPremium": false
+  },
+  {
+    "_id": {
+      "$oid": "665a1cfb1a2f000001234002"
+    },
+    "name": "White Chana",
+    "searchName": "white chana",
+    "searchKeywords": [
+      "chickpeas",
+      "kabuli chana",
+      "boiled",
+      "vegan",
+      "legume",
+      "protein"
+    ],
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": {
+          "$numberInt": "269"
+        },
+        "protein": {
+          "$numberDouble": "14.5"
+        },
+        "carbs": {
+          "$numberDouble": "45.0"
+        },
+        "fat": {
+          "$numberDouble": "4.2"
+        },
+        "_id": {
+          "$oid": "665a1cfb1a2f000001234102"
+        }
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "dairy-free"
+    ],
+    "ingredients": [
+      "white chana",
+      "salt",
+      "water",
+      "spices"
+    ],
+    "recipe": [
+      "Soak chana overnight.",
+      "Boil until soft.",
+      "Add spices as needed.",
+      "Serve hot."
+    ],
+    "category": "breakfast",
+    "difficulty": "easy",
+    "prepTime": {
+      "$numberInt": "480"
+    },
+    "cookTime": {
+      "$numberInt": "30"
+    },
+    "servings": {
+      "$numberInt": "2"
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1751627876115"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1751627876115"
+      }
+    },
+    "imageUrl": "",
+    "isPremium": false
+  },
+  {
+    "_id": {
+      "$oid": "665a1cfc1a2f000001234003"
+    },
+    "name": "Black Chana",
+    "searchName": "black chana",
+    "searchKeywords": [
+      "black chana",
+      "kala chana",
+      "boiled",
+      "vegan",
+      "legume",
+      "protein"
+    ],
+    "units": [
+      {
+        "unit": "bowl",
+        "calories": {
+          "$numberInt": "269"
+        },
+        "protein": {
+          "$numberDouble": "15.0"
+        },
+        "carbs": {
+          "$numberDouble": "45.0"
+        },
+        "fat": {
+          "$numberDouble": "3.0"
+        },
+        "_id": {
+          "$oid": "665a1cfc1a2f000001234103"
+        }
+      }
+    ],
+    "tags": [
+      "vegetarian",
+      "vegan",
+      "gluten-free",
+      "dairy-free"
+    ],
+    "ingredients": [
+      "black chana",
+      "salt",
+      "water",
+      "spices"
+    ],
+    "recipe": [
+      "Soak chana overnight.",
+      "Boil until soft.",
+      "Add spices or tempering.",
+      "Serve hot."
+    ],
+    "category": "breakfast",
+    "difficulty": "easy",
+    "prepTime": {
+      "$numberInt": "480"
+    },
+    "cookTime": {
+      "$numberInt": "30"
+    },
+    "servings": {
+      "$numberInt": "2"
+    },
+    "__v": {
+      "$numberInt": "0"
+    },
+    "createdAt": {
+      "$date": {
+        "$numberLong": "1751627876115"
+      }
+    },
+    "updatedAt": {
+      "$date": {
+        "$numberLong": "1751627876115"
+      }
+    },
+    "imageUrl": "",
+    "isPremium": false
+  }
+]

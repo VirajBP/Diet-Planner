@@ -1,6 +1,7 @@
+import dotenv from 'dotenv/config';
 export const MONGODB_CONFIG = {
   // This will be replaced with your actual MongoDB URL
-  MONGODB_URI: 'mongodb+srv://virajpradhan04:RFFga31yPeMGfaUj@diet-planner.cb8bfqe.mongodb.net/',
+  MONGODB_URI: process.env.MONGODB_URI,
   // Database name
   DB_NAME: 'diet_planner',
   // Collection names
